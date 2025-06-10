@@ -2,12 +2,12 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 
-// 先ほど作ったVuetifyの設定をインポート
 import vuetify from "./plugins/vuetify";
+import router from "./router"; // ← ここが必要
 
 const app = createApp(App);
 
-// VuetifyをVueにプラグインとしてセットアップ
 app.use(vuetify);
+app.use(router); // ← ここも必要
 
 app.mount("#app");
