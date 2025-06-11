@@ -81,10 +81,27 @@ const addUser = async () => {
   }
 };
 
-// 編集開始
-const startEdit = (user: { id: number; name: string }) => {
-  editingId.value = user.id;
-  editName.value = user.name;
+// 編集開始 → ダイアログで入力を受け取る
+const startEdit = async (user: { id: number; name: string }) => {
+  const newName = await dialogService.editText({
+    title: "ユーザー名を編集",
+    label: "ユーザー名",
+    defaultValue: user.name,
+  });
+
+  if (newName === null) return; // キャンセル時
+
+  try {
+    await axios.put(`${BASE_URL}/${user.id}`, { name: newName });
+    await fetchUsers();
+    await dialogService.alert({
+      title: "更新完了",
+      message: "ユーザー名が更新されました",
+    });
+  } catch (err) {
+    error.value = "更新に失敗しました";
+    console.error(err);
+  }
 };
 
 // ユーザー更新
