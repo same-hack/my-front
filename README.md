@@ -4,3 +4,5 @@ npm install
 npm install vuetify@next sass
 
 npm install vue-router
+npm install axios
+npm install pinia

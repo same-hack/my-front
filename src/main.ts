@@ -1,13 +1,14 @@
 // src/main.ts
 import { createApp } from "vue";
 import App from "./App.vue";
-
+import router from "./router";
 import vuetify from "./plugins/vuetify";
-import router from "./router"; // ← ここが必要
+import { createPinia } from "pinia";
 
 const app = createApp(App);
 
+app.use(router);
 app.use(vuetify);
-app.use(router); // ← ここも必要
+app.use(createPinia());
 
 app.mount("#app");
