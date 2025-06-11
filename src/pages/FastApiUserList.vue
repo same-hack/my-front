@@ -90,10 +90,22 @@ const startEdit = (user: { id: number; name: string }) => {
 // ユーザー更新
 const updateUser = async (id: number) => {
   try {
+    // APIにPUTリクエストを送りユーザー情報を更新
     await axios.put(`${BASE_URL}/${id}`, { name: editName.value });
+
+    // 編集モードを解除
     editingId.value = null;
+
+    // 更新後、最新のユーザー一覧を取得し直す
     await fetchUsers();
+
+    // 更新成功の通知アラートを表示
+    await dialogService.alert({
+      title: "更新完了",
+      message: "ユーザー情報が正常に更新されました。",
+    });
   } catch (err) {
+    // エラー発生時はエラーメッセージをセットしてログに出力
     error.value = "更新に失敗しました";
     console.error(err);
   }
