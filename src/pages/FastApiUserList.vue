@@ -47,7 +47,7 @@ import axios from "axios";
 import { dialogService } from "@/services/dialogService"; // ✅ ダイアログ共通サービス
 
 // APIエンドポイント（環境に応じて変更可）
-const BASE_URL = "http://127.0.0.1:8000/api/users";
+const BASE_URL = "/api/users";
 
 // 各種リアクティブ状態
 const users = ref<{ id: number; name: string }[]>([]);
