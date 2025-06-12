@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# 仮想環境ディレクトリ
+venv/
+env/
+.venv/
+
+# Pythonのコンパイル済みファイル
+__pycache__/
+*.py[cod]
+*$py.class
