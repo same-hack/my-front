@@ -6,3 +6,8 @@ npm install vuetify@next sass
 npm install vue-router
 npm install axios
 npm install pinia
+npx expo upgrade
+
+pip install sqlalchemy
+pip install asyncpg
+pip install databases

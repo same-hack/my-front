@@ -1,4 +1,5 @@
 // src/router/index.ts
+
 import { createRouter, createWebHistory } from "vue-router";
 
 // 各ページコンポーネントをインポート
@@ -9,13 +10,14 @@ import PageC from "@/pages/PageC.vue";
 import UserList from "@/pages/UserList.vue";
 import UserDetail from "@/pages/UserDetail.vue";
 import FastApiUserList from "@/pages/FastApiUserList.vue"; // ← FastAPI連携ページ
+import MyTableList from "@/pages/MyTableList.vue"; // ✅ my_table 一覧ページ（新規追加）
 
 // ルート定義（すべて統合済み）
 const routes = [
   // ホーム画面
   { path: "/", name: "Home", component: HomePage },
 
-  // パラメータ付きのページ
+  // パラメータ付きのページ（例: /a/1）
   { path: "/a/:id", name: "PageA", component: PageA },
 
   // 静的ページ
@@ -36,6 +38,13 @@ const routes = [
     path: "/fastapi-users",
     name: "FastApiUserList",
     component: FastApiUserList,
+  },
+
+  // ✅ FastAPIと連携する my_table 一覧ページ（新規追加）
+  {
+    path: "/my-table",
+    name: "MyTableList",
+    component: MyTableList,
   },
 ];
 

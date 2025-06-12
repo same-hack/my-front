@@ -12,9 +12,14 @@
     <v-btn color="secondary" class="ma-2" to="/users">User List</v-btn>
 
     <!-- FastAPI 連携ユーザ一覧 -->
-    <v-btn color="indigo" class="ma-2" to="/fastapi-users"
-      >FastAPI User List</v-btn
-    >
+    <v-btn color="indigo" class="ma-2" to="/fastapi-users">
+      FastAPI User List
+    </v-btn>
+
+    <!-- ✅ FastAPI 連携 my_table 一覧ページ -->
+    <v-btn color="teal darken-2" class="ma-2" to="/my-table">
+      My Table List
+    </v-btn>
   </v-container>
 </template>
 
