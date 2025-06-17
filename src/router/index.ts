@@ -1,5 +1,3 @@
-// src/router/index.ts
-
 import { createRouter, createWebHistory } from "vue-router";
 
 // 各ページコンポーネントをインポート
@@ -10,7 +8,8 @@ import PageC from "@/pages/PageC.vue";
 import UserList from "@/pages/UserList.vue";
 import UserDetail from "@/pages/UserDetail.vue";
 import FastApiUserList from "@/pages/FastApiUserList.vue"; // ← FastAPI連携ページ
-import MyTableList from "@/pages/MyTableList.vue"; // ✅ my_table 一覧ページ（新規追加）
+import MyTableList from "@/pages/MyTableList.vue"; // ← my_table 一覧ページ
+import UploadPage from "@/pages/UploadPage.vue"; // ✅ アップロードページ（追加）
 
 // ルート定義（すべて統合済み）
 const routes = [
@@ -40,11 +39,18 @@ const routes = [
     component: FastApiUserList,
   },
 
-  // ✅ FastAPIと連携する my_table 一覧ページ（新規追加）
+  // FastAPIと連携する my_table 一覧ページ
   {
     path: "/my-table",
     name: "MyTableList",
     component: MyTableList,
+  },
+
+  // ✅ ファイルアップロードページ（新規追加）
+  {
+    path: "/upload",
+    name: "UploadPage",
+    component: UploadPage,
   },
 ];
 

@@ -20,6 +20,10 @@
     <v-btn color="teal darken-2" class="ma-2" to="/my-table">
       My Table List
     </v-btn>
+
+    <v-btn color="deep-purple accent-4" class="ma-2" to="/upload">
+      📁 ファイルアップロード
+    </v-btn>
   </v-container>
 </template>
 
