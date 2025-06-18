@@ -1,30 +1,28 @@
 // src/stores/auth.ts
-// ✅ ユーザーのログイン状態や情報を管理するストア
+// ✅ 認証情報を管理する Pinia ストア
+
 import { defineStore } from "pinia";
 
 export const useAuthStore = defineStore("auth", {
-  // 🌟 状態定義
   state: () => ({
-    isLoggedIn: false, // ユーザーがログイン済みか
-    username: "", // ログイン中のユーザー名
+    isLoggedIn: false, // ログイン済みフラグ
+    username: "", // 現在のユーザー名
     isAdmin: false, // 管理者フラグ
-    redirectPath: "/", // 🔁 ログイン後のリダイレクト先を一時保存（初期はルート）
+    redirectPath: "/", // 未ログイン時の遷移先を保持
   }),
-
-  // 🌟 ログイン/ログアウトなどの操作を定義
   actions: {
-    // ログイン時の情報更新
-    login(userData: { username: string; isAdmin: boolean }) {
+    login(payload: { username: string; isAdmin: boolean }) {
+      // 🔐 ログイン成功時に呼び出す
       this.isLoggedIn = true;
-      this.username = userData.username;
-      this.isAdmin = userData.isAdmin;
+      this.username = payload.username;
+      this.isAdmin = payload.isAdmin;
     },
-    // ログアウト処理
     logout() {
+      // 🔓 ログアウト時に呼び出す
       this.isLoggedIn = false;
       this.username = "";
       this.isAdmin = false;
-      this.redirectPath = "/"; // ログアウト時にリセット
+      this.redirectPath = "/";
     },
   },
 });

@@ -1,10 +1,10 @@
 // src/router/index.ts
-// ✅ Vue Router 定義（全ページにログイン制限を追加）
+// ✅ 全ページに認証ガードをかける
 
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
-// 各ページコンポーネントをインポート
+// ページコンポーネント
 import HomePage from "@/pages/HomePage.vue";
 import PageA from "@/pages/PageA.vue";
 import PageB from "@/pages/PageB.vue";
@@ -16,14 +16,11 @@ import MyTableList from "@/pages/MyTableList.vue";
 import UploadPage from "@/pages/UploadPage.vue";
 import LoginPage from "@/pages/LoginPage.vue";
 
-// ==========================
-// ✅ ページ定義（ルート一覧）
-// ==========================
 const routes = [
-  // ✅ 認証なしでアクセス可能なログインページ
+  // ──────── 認証不要ルート ────────
   { path: "/login", name: "Login", component: LoginPage },
 
-  // ✅ ここから下はすべて「認証が必要なページ」
+  // ──────── 認証必須ルート ────────
   {
     path: "/",
     name: "Home",
@@ -71,35 +68,29 @@ const routes = [
   },
 ];
 
-// ==========================
-// ✅ Routerインスタンス作成
-// ==========================
 const router = createRouter({
   history: createWebHistory(),
   routes,
 });
 
-// ==========================
-// ✅ 認証チェック（ナビゲーションガード）
-// ==========================
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore();
 
-  // 1. ログインページは誰でも通す
+  // 1) 認証不要ページはそのまま
   if (!to.meta.requiresAuth) {
     return next();
   }
 
-  // 2. 認証されていない場合 → login に飛ばす（このとき元のページを記録）
+  // 2) 未ログインなら Login へリダイレクト
   if (!auth.isLoggedIn) {
-    // ✅ 1回だけ保存する
+    // 最初にアクセスしようとしていたパスを記憶
     if (!auth.redirectPath || auth.redirectPath === "/") {
-      auth.redirectPath = to.fullPath; // 👈 本当に行きたかったページを保存
+      auth.redirectPath = to.fullPath;
     }
     return next({ name: "Login" });
   }
 
-  // 3. 認証済 → 通す
+  // 3) ログイン済み → そのまま進む
   return next();
 });
 
