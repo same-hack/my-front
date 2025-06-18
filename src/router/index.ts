@@ -10,6 +10,7 @@ import UserDetail from "@/pages/UserDetail.vue";
 import FastApiUserList from "@/pages/FastApiUserList.vue"; // ← FastAPI連携ページ
 import MyTableList from "@/pages/MyTableList.vue"; // ← my_table 一覧ページ
 import UploadPage from "@/pages/UploadPage.vue"; // ✅ アップロードページ（追加）
+import LoginPage from "@/pages/LoginPage.vue";
 
 // ルート定義（すべて統合済み）
 const routes = [
@@ -52,6 +53,8 @@ const routes = [
     name: "UploadPage",
     component: UploadPage,
   },
+
+  { path: "/login", name: "Login", component: LoginPage },
 ];
 
 // Vue Routerの作成
