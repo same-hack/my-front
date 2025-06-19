@@ -1,6 +1,16 @@
 <!-- src/pages/HomePage.vue -->
 <template>
-  <v-container>
+  <!-- 🧭 アプリバー（ヘッダ） -->
+  <v-app-bar app color="primary" dark>
+    <v-toolbar-title>ホーム</v-toolbar-title>
+
+    <!-- 🔓 右端のログアウトボタン -->
+    <v-spacer />
+    <BtnLogout />
+  </v-app-bar>
+
+  <!-- 📦 メインコンテンツ -->
+  <v-container class="mt-6">
     <h1>ホーム</h1>
 
     <!-- 各ページへの遷移ボタン -->
@@ -28,5 +38,5 @@
 </template>
 
 <script setup lang="ts">
-// ロジックなし。ボタンでルート遷移するだけ。
+import BtnLogout from "@/components/BtnLogout.vue";
 </script>
