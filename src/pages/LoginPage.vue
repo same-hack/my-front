@@ -1,4 +1,3 @@
-<!-- src/pages/LoginPage.vue -->
 <template>
   <v-container>
     <h1>ログインページ</h1>
@@ -32,25 +31,29 @@ const authStore = useAuthStore();
 
 const login = async () => {
   try {
-    // ──── 実際の DB 認証エンドポイントを叩く ────
-    // 🔐 APIに認証リクエストを送信
+    // 🔐 APIに認証リクエストを送信（JWTトークンを取得）
     const res = await axios.post("/api/auth/login", {
       username: username.value,
       password: password.value,
     });
 
-    // ──── 認証成功 ────
+    // ✅ レスポンスから必要な情報を抽出
+    const { access_token, username: resUsername, is_admin, rid } = res.data;
+
+    // ✅ ストアにログイン情報とトークンを保存
     authStore.login({
-      username: res.data.username,
-      isAdmin: res.data.is_admin,
+      token: access_token, // JWTアクセストークン
+      username: resUsername, // ユーザー名
+      isAdmin: is_admin, // 管理者フラグ
+      rid, // ユーザーIDなど
     });
 
-    // ──── 元のパス or ルートにリダイレクト ────
+    // 🚪 元の遷移先へリダイレクト（なければルートへ）
     const dest = authStore.redirectPath || "/";
     authStore.redirectPath = "/";
     router.push(dest);
   } catch (err: any) {
-    // ──── 認証失敗 ────
+    // ❌ 認証失敗時はエラーメッセージを表示
     errorMessage.value = err.response?.data?.detail || "ログインに失敗しました";
   }
 };
