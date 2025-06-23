@@ -80,7 +80,7 @@ const submitFile = async () => {
     formData.append("totalChunks", totalChunks.toString());
 
     try {
-      await axios.post("/api/upload-chunk", formData, {
+      await axios.post("/api/upload/chunk", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
