@@ -1,4 +1,3 @@
-<!-- src/pages/UploadPage.vue -->
 <template>
   <v-container>
     <h1>ファイルアップロード</h1>
@@ -20,7 +19,7 @@
 
     <v-btn
       @click="submitFile"
-      :disabled="!selectedFile"
+      :disabled="!selectedFile || isUploading"
       color="success"
       class="mt-4"
     >
@@ -43,6 +42,7 @@ const selectedFile = ref<File | null>(null);
 const fileName = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const uploadProgress = ref<number | null>(null);
+const isUploading = ref(false);
 
 const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -57,54 +57,70 @@ const handleFileChange = (event: Event) => {
   fileName.value = file?.name || null;
 };
 
-// 分割アップロード処理
 const submitFile = async () => {
   if (!selectedFile.value) return;
+  isUploading.value = true;
 
-  const file = selectedFile.value;
-  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-  const uploadId = `${file.name}-${Date.now()}`;
+  try {
+    const file = selectedFile.value;
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
-  uploadProgress.value = 0;
+    // 1. アップロード開始
+    const startResp = await axios.post("/api/upload/start", {
+      fileName: file.name,
+    });
+    const uploadId = startResp.data.uploadId;
 
-  for (let i = 0; i < totalChunks; i++) {
-    const start = i * CHUNK_SIZE;
-    const end = Math.min(file.size, start + CHUNK_SIZE);
-    const chunk = file.slice(start, end);
+    // ETagリスト
+    const parts: { ETag: string; PartNumber: number }[] = [];
 
-    const formData = new FormData();
-    formData.append("chunk", chunk);
-    formData.append("fileName", file.name);
-    formData.append("uploadId", uploadId);
-    formData.append("chunkIndex", i.toString());
-    formData.append("totalChunks", totalChunks.toString());
+    // 2. チャンクごとに署名付きURLを取得しPUT
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(file.size, start + CHUNK_SIZE);
+      const chunk = file.slice(start, end);
 
-    try {
-      await axios.post("/api/upload/chunk", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const urlResp = await axios.post("/api/upload/presign", {
+        uploadId,
+        chunkIndex: i,
+        fileName: file.name,
+      });
+      const { url, partNumber } = urlResp.data;
+
+      const putResp = await axios.put(url, chunk, {
+        headers: { "Content-Type": "application/octet-stream" },
       });
 
-      // 進捗表示を更新
+      const etag = putResp.headers.etag as string;
+      parts.push({ ETag: etag, PartNumber: partNumber });
+
       uploadProgress.value = Math.round(((i + 1) / totalChunks) * 100);
-    } catch (error) {
-      console.error(`チャンク${i}のアップロードに失敗`, error);
-      await dialogService.alert({
-        title: "アップロード失敗",
-        message: `チャンク${i + 1}のアップロードに失敗しました`,
-      });
-      return;
     }
+
+    // 3. 完了API
+    await axios.post("/api/upload/complete", {
+      uploadId,
+      fileName: file.name,
+      parts,
+    });
+
+    await dialogService.alert({
+      title: "アップロード完了",
+      message: "ファイルがMinIOにアップロードされました",
+    });
+
+    selectedFile.value = null;
+    fileName.value = null;
+    uploadProgress.value = null;
+  } catch (error) {
+    console.error("アップロード失敗", error);
+    await dialogService.alert({
+      title: "アップロード失敗",
+      message: "ファイルアップロード中にエラーが発生しました",
+    });
+  } finally {
+    isUploading.value = false;
   }
-
-  await dialogService.alert({
-    title: "",
-    message: "アップロード完了！",
-  });
-
-  // 初期化
-  selectedFile.value = null;
-  fileName.value = null;
-  uploadProgress.value = null;
 };
 </script>
 
