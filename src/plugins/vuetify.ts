@@ -1,26 +1,50 @@
-// 1. Vuetifyのスタイル（CSS）を読み込む（Vuetify 3に必須）
+// src/plugins/vuetify.ts
 import "vuetify/styles";
-
-// 2. Vuetify本体と、全てのコンポーネント／ディレクティブを読み込む
 import { createVuetify } from "vuetify";
-import * as components from "vuetify/components"; // 例: v-btn, v-card, v-dialog など
-import * as directives from "vuetify/directives"; // 例: v-ripple, v-show など
+import * as components from "vuetify/components";
+import * as directives from "vuetify/directives";
 
-// 3. Material Design Icons（MDI）を使うための設定
-import { aliases, mdi } from "vuetify/iconsets/mdi"; // mdi = アイコンセット、aliases = アイコン名の省略形
-
-// 4. MDIのCSSを読み込む（これがないと mdi-icon が表示されない）
+import { aliases, mdi } from "vuetify/iconsets/mdi";
 import "@mdi/font/css/materialdesignicons.css";
 
-// 5. createVuetifyでVuetifyインスタンスを生成し、アイコン設定を追加
 export default createVuetify({
-  components, // 全コンポーネントを使えるようにする
-  directives, // 全ディレクティブを使えるようにする
+  components,
+  directives,
   icons: {
-    defaultSet: "mdi", // デフォルトのアイコンセットをmdi（Material Design Icons）に指定
-    aliases, // エイリアス（例: mdi-close → close など）を有効化
-    sets: {
-      mdi, // mdiセットを登録
+    defaultSet: "mdi",
+    aliases,
+    sets: { mdi },
+  },
+  theme: {
+    defaultTheme: "dark",
+    themes: {
+      dark: {
+        dark: true,
+        colors: {
+          background: "#202123", // ChatGPT の画面背景に近い濃いグレー
+          surface: "#343541", // モーダルやカードの背景
+          primary: "#10A37F", // ChatGPT 緑
+          secondary: "#2F3136", // サイドバーやヘッダーのやや暗いグレー
+          nav: "#2F3136", // ← LeftMenu 用に同じ secondary を使う
+          info: "#58B9A9",
+          success: "#3AA655",
+          warning: "#F9A825",
+          error: "#E03E3E",
+        },
+      },
+      light: {
+        dark: false,
+        colors: {
+          background: "#FFFFFF",
+          surface: "#F2F2F2",
+          primary: "#10A37F",
+          secondary: "#CCCCCC",
+          info: "#58B9A9",
+          success: "#3AA655",
+          warning: "#F9A825",
+          error: "#E03E3E",
+        },
+      },
     },
   },
 });
