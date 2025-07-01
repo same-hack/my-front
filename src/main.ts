@@ -4,6 +4,8 @@ import router from "./router";
 import vuetify from "./plugins/vuetify";
 import { createPinia } from "pinia";
 import { useAuthStore } from "@/stores/auth";
+import "@/assets/scss/layout-grid.scss"; // ここで共通CSSを読み込み
+import "@/assets/scss/global.scss"; // ここで共通CSSを読み込み
 
 const app = createApp(App);
 
