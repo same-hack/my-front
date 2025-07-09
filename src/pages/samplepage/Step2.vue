@@ -3,6 +3,7 @@
     <v-row class="fill-height" align="center" justify="center">
       <v-col cols="12" md="10" lg="8">
         <v-row dense>
+          <!-- AVIアップロード -->
           <v-col cols="12" md="6">
             <div
               class="drop-zone"
@@ -36,6 +37,7 @@
             </div>
           </v-col>
 
+          <!-- SYNアップロード -->
           <v-col cols="12" md="6">
             <div
               class="drop-zone"
@@ -69,18 +71,6 @@
             </div>
           </v-col>
         </v-row>
-
-        <div class="d-flex justify-space-between mt-6">
-          <v-btn variant="outlined" color="secondary" @click="$emit('back')"
-            >戻る</v-btn
-          >
-          <v-btn
-            :disabled="!aviFile || !synFile"
-            color="primary"
-            @click="uploadBoth"
-            >NEXT</v-btn
-          >
-        </div>
       </v-col>
     </v-row>
   </v-container>
@@ -90,16 +80,17 @@
 import { ref } from "vue";
 import axios from "axios";
 
+// ファイル状態管理
 const aviFile = ref<File | null>(null);
 const synFile = ref<File | null>(null);
 const aviInput = ref<HTMLInputElement | null>(null);
 const synInput = ref<HTMLInputElement | null>(null);
-
 const draggingAvi = ref(false);
 const draggingSyn = ref(false);
 const aviProgress = ref(0);
 const synProgress = ref(0);
 
+// ファイル選択・ドラッグ処理
 const triggerFile = (type: "avi" | "syn") => {
   if (type === "avi") aviInput.value?.click();
   else synInput.value?.click();
@@ -124,6 +115,7 @@ const onDrop = (e: DragEvent, type: "avi" | "syn") => {
   }
 };
 
+// ファイルアップロード（必要に応じて外部から呼び出す）
 const uploadFile = async (file: File, progressRef: typeof aviProgress) => {
   const CHUNK_SIZE = 10 * 1024 * 1024;
   const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
@@ -150,17 +142,6 @@ const uploadFile = async (file: File, progressRef: typeof aviProgress) => {
     fileName: file.name,
     parts,
   });
-};
-
-const uploadBoth = async () => {
-  if (!aviFile.value || !synFile.value) return;
-  await uploadFile(aviFile.value, aviProgress);
-  await uploadFile(synFile.value, synProgress);
-  aviProgress.value = 0;
-  synProgress.value = 0;
-  aviFile.value = null;
-  synFile.value = null;
-  emit("next");
 };
 </script>
 

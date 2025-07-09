@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-0">
-    <!-- ✅ タイトル行 -->
+    <!-- ✅ タイトル -->
     <v-row
       no-gutters
       style="height: 64px"
@@ -11,8 +11,8 @@
       </v-col>
     </v-row>
 
-    <!-- ✅ ステッパー本体 -->
-    <v-row no-gutters style="height: calc(100vh - 64px)">
+    <!-- ✅ ステッパー本体（全高 - タイトル64px - フッター64px） -->
+    <v-row no-gutters style="height: calc(100vh - 128px)">
       <v-col cols="12" class="fill-height">
         <v-stepper v-model="step" vertical class="fill-height">
           <!-- ヘッダー -->
@@ -26,40 +26,43 @@
             <v-stepper-step step="3" @click="goStep(3)">Step 3</v-stepper-step>
           </v-stepper-header>
 
-          <!-- 各ステップの内容 -->
+          <!-- 各ステップ -->
           <v-stepper-items class="fill-height overflow-auto">
             <v-stepper-content step="1" class="fill-height">
               <router-view v-slot="{ Component }">
-                <component
-                  :is="Component"
-                  class="step-content"
-                  @next="goStep(2)"
-                />
+                <component :is="Component" class="step-content" />
               </router-view>
             </v-stepper-content>
-
             <v-stepper-content step="2" class="fill-height">
               <router-view v-slot="{ Component }">
-                <component
-                  :is="Component"
-                  class="step-content"
-                  @next="goStep(3)"
-                  @back="goStep(1)"
-                />
+                <component :is="Component" class="step-content" />
               </router-view>
             </v-stepper-content>
-
             <v-stepper-content step="3" class="fill-height">
               <router-view v-slot="{ Component }">
-                <component
-                  :is="Component"
-                  class="step-content"
-                  @back="goStep(2)"
-                />
+                <component :is="Component" class="step-content" />
               </router-view>
             </v-stepper-content>
           </v-stepper-items>
         </v-stepper>
+      </v-col>
+    </v-row>
+
+    <!-- ✅ Prev / Next ボタン -->
+    <v-row no-gutters style="height: 64px" class="align-center px-4">
+      <v-col cols="12" class="d-flex justify-space-between">
+        <v-btn
+          v-if="step > 1"
+          variant="outlined"
+          color="secondary"
+          @click="goStep(step - 1)"
+        >
+          戻る
+        </v-btn>
+        <div />
+        <v-btn v-if="step < 3" color="primary" @click="goStep(step + 1)">
+          NEXT
+        </v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -69,17 +72,11 @@
 import { useRoute, useRouter } from "vue-router";
 import { ref, watch } from "vue";
 
-const route = useRoute();
 const router = useRouter();
+const route = useRoute();
 const step = ref(1);
 
-// ステップ遷移とURL更新
-const goStep = (num: number) => {
-  step.value = num;
-  router.push({ name: `StepperStep${num}` });
-};
-
-// URL直アクセス対応（例：/sample/stepper/step2）
+// URL → ステップ番号反映
 watch(
   () => route.name,
   (name) => {
@@ -89,6 +86,12 @@ watch(
   },
   { immediate: true }
 );
+
+// ステップ移動 → URL更新
+const goStep = (num: number) => {
+  step.value = num;
+  router.push({ name: `StepperStep${num}` });
+};
 </script>
 
 <style scoped>
