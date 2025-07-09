@@ -1,32 +1,32 @@
-/* layout-grid.css */
+// /* layout-grid.css */
 
-.layout-content {
-  display: grid;
-  height: 100vh;
-  overflow: hidden;
+// .layout-content {
+//   display: grid;
+//   height: 100vh;
+//   overflow: hidden;
 
-  grid-template:
-    "...... ...... ...... ...... ...... ...... ......" 1vh
-    "...... title  title  title  title  title  ......" 10vh
-    "...... ...... ...... ...... ...... ...... ......" 1vh
-    "...... step   step   step   step   step   ......" 10vh
-    "...... ...... ...... ...... ...... ...... ......" 1vh
-    "...... main   main   main   main   main   ......" 64vh
-    "...... ...... ...... ...... ...... ...... ......" 1vh
-    "...... footer footer footer footer footer ......" 10vh
-    "...... ...... ...... ...... ...... ...... ......" 2vh
-    / 1rem 1fr 1rem 2fr 1rem 1fr 1rem;
-}
+//   grid-template:
+//     "...... ...... ...... ...... ...... ...... ......" 1vh
+//     "...... title  title  title  title  title  ......" 10vh
+//     "...... ...... ...... ...... ...... ...... ......" 1vh
+//     "...... step   step   step   step   step   ......" 10vh
+//     "...... ...... ...... ...... ...... ...... ......" 1vh
+//     "...... main   main   main   main   main   ......" 64vh
+//     "...... ...... ...... ...... ...... ...... ......" 1vh
+//     "...... footer footer footer footer footer ......" 10vh
+//     "...... ...... ...... ...... ...... ...... ......" 2vh
+//     / 1rem 1fr 1rem 2fr 1rem 1fr 1rem;
+// }
 
-.layout-content > ._title {
-  grid-area: title;
-}
-.layout-content > ._step {
-  grid-area: step;
-}
-.layout-content > ._main {
-  grid-area: main;
-}
-.layout-content > ._footer {
-  grid-area: footer;
-}
+// .layout-content > ._title {
+//   grid-area: title;
+// }
+// .layout-content > ._step {
+//   grid-area: step;
+// }
+// .layout-content > ._main {
+//   grid-area: main;
+// }
+// .layout-content > ._footer {
+//   grid-area: footer;
+// }

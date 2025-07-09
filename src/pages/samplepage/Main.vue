@@ -1,105 +1,98 @@
 <template>
-  <v-container fluid class="pa-0">
-    <!-- ✅ タイトル -->
-    <v-row
-      no-gutters
-      style="height: 64px"
-      class="align-center px-4 bg-grey-lighten-3"
-    >
-      <v-col cols="12">
-        <h2 class="text-h6 font-weight-bold">サンプルステップページ</h2>
-      </v-col>
-    </v-row>
+  <div class="layout-content">
+    <div class="_title">
+      <h2 class="text-h5">たいとる</h2>
+    </div>
 
-    <!-- ✅ ステッパー本体（全高 - タイトル64px - フッター64px） -->
-    <v-row no-gutters style="height: calc(100vh - 128px)">
-      <v-col cols="12" class="fill-height">
-        <v-stepper v-model="step" vertical class="fill-height">
-          <!-- ヘッダー -->
-          <v-stepper-header>
-            <v-stepper-step :complete="step > 1" step="1" @click="goStep(1)">
-              Step 1
-            </v-stepper-step>
-            <v-stepper-step :complete="step > 2" step="2" @click="goStep(2)">
-              Step 2
-            </v-stepper-step>
-            <v-stepper-step step="3" @click="goStep(3)">Step 3</v-stepper-step>
-          </v-stepper-header>
+    <div class="stepper-main">
+      <v-stepper v-model="step" alt-labels style="height: 100%">
+        <v-stepper-header>
+          <v-stepper-item :complete="step > 1" :value="1" title="Step 1" />
+          <v-stepper-item :complete="step > 2" :value="2" title="Step 2" />
+          <v-stepper-item :complete="step > 3" :value="3" title="Step 3" />
+        </v-stepper-header>
 
-          <!-- 各ステップ -->
-          <v-stepper-items class="fill-height overflow-auto">
-            <v-stepper-content step="1" class="fill-height">
-              <router-view v-slot="{ Component }">
-                <component :is="Component" class="step-content" />
-              </router-view>
-            </v-stepper-content>
-            <v-stepper-content step="2" class="fill-height">
-              <router-view v-slot="{ Component }">
-                <component :is="Component" class="step-content" />
-              </router-view>
-            </v-stepper-content>
-            <v-stepper-content step="3" class="fill-height">
-              <router-view v-slot="{ Component }">
-                <component :is="Component" class="step-content" />
-              </router-view>
-            </v-stepper-content>
-          </v-stepper-items>
-        </v-stepper>
-      </v-col>
-    </v-row>
+        <v-stepper-window style="height: calc(100% - 48px); overflow-y: auto">
+          <v-stepper-window-item :value="1">
+            <Step1 @next="goToStep(2)" />
+          </v-stepper-window-item>
 
-    <!-- ✅ Prev / Next ボタン -->
-    <v-row no-gutters style="height: 64px" class="align-center px-4">
-      <v-col cols="12" class="d-flex justify-space-between">
-        <v-btn
-          v-if="step > 1"
-          variant="outlined"
-          color="secondary"
-          @click="goStep(step - 1)"
-        >
-          戻る
-        </v-btn>
-        <div />
-        <v-btn v-if="step < 3" color="primary" @click="goStep(step + 1)">
-          NEXT
-        </v-btn>
-      </v-col>
-    </v-row>
-  </v-container>
+          <v-stepper-window-item :value="2">
+            <Step2 @prev="goToStep(1)" @next="goToStep(3)" />
+          </v-stepper-window-item>
+
+          <v-stepper-window-item :value="3">
+            <Step3 @prev="goToStep(2)" />
+          </v-stepper-window-item>
+        </v-stepper-window>
+      </v-stepper>
+    </div>
+
+    <div class="stepper-footer">
+      <v-btn
+        variant="outlined"
+        color="secondary"
+        :disabled="step === 1"
+        @click="goToStep(step - 1)"
+      >
+        戻る
+      </v-btn>
+      <v-spacer />
+      <v-btn color="primary" :disabled="step === 3" @click="goToStep(step + 1)">
+        次へ
+      </v-btn>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { useRoute, useRouter } from "vue-router";
 import { ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import Step1 from "./Step1.vue";
+import Step2 from "./Step2.vue";
+import Step3 from "./Step3.vue";
 
-const router = useRouter();
-const route = useRoute();
 const step = ref(1);
+const route = useRoute();
+const router = useRouter();
 
-// URL → ステップ番号反映
-watch(
-  () => route.name,
-  (name) => {
-    if (name === "StepperStep1") step.value = 1;
-    else if (name === "StepperStep2") step.value = 2;
-    else if (name === "StepperStep3") step.value = 3;
-  },
-  { immediate: true }
-);
+// ✅ URL→step 同期
+const stepMap: Record<string, number> = {
+  step1: 1,
+  step2: 2,
+  step3: 3,
+};
 
-// ステップ移動 → URL更新
-const goStep = (num: number) => {
-  step.value = num;
-  router.push({ name: `StepperStep${num}` });
+// ✅ 初期表示時：URLに応じて step を設定
+const currentStepFromRoute = stepMap[route.path.split("/").pop() || "step1"];
+if (currentStepFromRoute) step.value = currentStepFromRoute;
+
+// ✅ step→URL 同期
+const goToStep = (targetStep: number) => {
+  step.value = targetStep;
+  router.push(`/sample/stepper/step${targetStep}`);
 };
 </script>
 
 <style scoped>
-.fill-height {
-  height: 100%;
+.layout-content {
+  padding: 24px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-.step-content {
-  height: 100%;
-  overflow-y: auto;
+._title {
+  height: 7vh;
+}
+.stepper-main {
+  height: 88vh;
+  overflow: hidden;
+}
+.stepper-footer {
+  height: 5vh;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
 }
 </style>
