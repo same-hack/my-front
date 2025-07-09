@@ -5,109 +5,130 @@
       <h2 class="text-h5">たいとる</h2>
     </div>
 
-    <!-- ステップ -->
-    <div class="_step stepper-wrapper text-center">
-      <v-chip :color="step >= 1 ? 'success' : ''" variant="outlined"
-        >Step 1</v-chip
-      >
-      <v-chip :color="step >= 2 ? 'success' : ''" variant="outlined"
-        >Step 2</v-chip
-      >
-      <v-chip :color="step >= 3 ? 'success' : ''" variant="outlined"
-        >Step 3</v-chip
-      >
-    </div>
+    <!-- ステップ UI -->
+    <v-stepper v-model="step" alt-labels>
+      <v-stepper-header>
+        <v-stepper-item :complete="step > 1" :value="1" title="Step 1" />
+        <v-stepper-item :complete="step > 2" :value="2" title="Step 2" />
+        <v-stepper-item :complete="step > 3" :value="3" title="Step 3" />
+      </v-stepper-header>
 
-    <!-- メインアップロードUI -->
-    <div class="_main">
-      <v-container fluid>
-        <v-row>
-          <!-- 動画ファイル -->
-          <v-col cols="12" md="6">
-            <div
-              class="drop-zone"
-              :class="{ 'drop-zone--hover': draggingAvi }"
-              @dragover.prevent
-              @dragenter.prevent="draggingAvi = true"
-              @dragleave.prevent="draggingAvi = false"
-              @drop.prevent="onDrop($event, 'avi')"
-              @click="triggerFile('avi')"
+      <v-stepper-window>
+        <!-- Step 1 -->
+        <v-stepper-window-item :value="1">
+          <v-card flat>
+            <v-card-text>ステップ1の説明などをここに記載</v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn color="primary" @click="step = 2">次へ</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-stepper-window-item>
+
+        <!-- Step 2：アップロード -->
+        <v-stepper-window-item :value="2">
+          <v-container fluid>
+            <v-row>
+              <!-- AVI -->
+              <v-col cols="12" md="6">
+                <div
+                  class="drop-zone"
+                  :class="{ 'drop-zone--hover': draggingAvi }"
+                  @dragover.prevent
+                  @dragenter.prevent="draggingAvi = true"
+                  @dragleave.prevent="draggingAvi = false"
+                  @drop.prevent="onDrop($event, 'avi')"
+                  @click="triggerFile('avi')"
+                >
+                  <input
+                    type="file"
+                    ref="aviInput"
+                    style="display: none"
+                    accept=".avi"
+                    @change="onChange($event, 'avi')"
+                  />
+                  <template v-if="!aviFile">
+                    <v-icon size="40">mdi-cloud-upload</v-icon>
+                    <p>AVIファイルのアップロード</p>
+                    <p class="text-caption">最大サイズ: xxx GB</p>
+                  </template>
+                  <template v-else>
+                    <div class="file-name">{{ aviFile.name }}</div>
+                    <v-progress-linear
+                      v-if="aviProgress > 0"
+                      :model-value="aviProgress"
+                      height="6"
+                      color="primary"
+                      class="mt-2"
+                    />
+                  </template>
+                </div>
+              </v-col>
+
+              <!-- SYN -->
+              <v-col cols="12" md="6">
+                <div
+                  class="drop-zone"
+                  :class="{ 'drop-zone--hover': draggingSyn }"
+                  @dragover.prevent
+                  @dragenter.prevent="draggingSyn = true"
+                  @dragleave.prevent="draggingSyn = false"
+                  @drop.prevent="onDrop($event, 'syn')"
+                  @click="triggerFile('syn')"
+                >
+                  <input
+                    type="file"
+                    ref="synInput"
+                    style="display: none"
+                    accept=".syn"
+                    @change="onChange($event, 'syn')"
+                  />
+                  <template v-if="!synFile">
+                    <v-icon size="40">mdi-cloud-upload</v-icon>
+                    <p>SYNファイルのアップロード</p>
+                    <p class="text-caption">最大サイズ: xxx KB</p>
+                  </template>
+                  <template v-else>
+                    <div class="file-name">{{ synFile.name }}</div>
+                    <v-progress-linear
+                      v-if="synProgress > 0"
+                      :model-value="synProgress"
+                      height="6"
+                      color="primary"
+                      class="mt-2"
+                    />
+                  </template>
+                </div>
+              </v-col>
+            </v-row>
+          </v-container>
+
+          <div class="_footer nav-footer">
+            <v-btn variant="outlined" color="secondary" @click="step = 1"
+              >戻る</v-btn
             >
-              <input
-                type="file"
-                ref="aviInput"
-                style="display: none"
-                accept=".avi"
-                @change="onChange($event, 'avi')"
-              />
-              <template v-if="!aviFile">
-                <v-icon size="40">mdi-cloud-upload</v-icon>
-                <p>ファイルのアップロード</p>
-                <p class="text-caption">Size limit: xxx GB</p>
-              </template>
-              <template v-else>
-                <div class="file-name">{{ aviFile.name }}</div>
-                <v-progress-linear
-                  v-if="aviProgress > 0"
-                  :model-value="aviProgress"
-                  height="6"
-                  color="primary"
-                  class="mt-2"
-                />
-              </template>
-            </div>
-          </v-col>
-
-          <!-- GPSファイル -->
-          <v-col cols="12" md="6">
-            <div
-              class="drop-zone"
-              :class="{ 'drop-zone--hover': draggingSyn }"
-              @dragover.prevent
-              @dragenter.prevent="draggingSyn = true"
-              @dragleave.prevent="draggingSyn = false"
-              @drop.prevent="onDrop($event, 'syn')"
-              @click="triggerFile('syn')"
+            <v-btn
+              color="primary"
+              :disabled="!aviFile || !synFile"
+              @click="handleUploadAndNext"
             >
-              <input
-                type="file"
-                ref="synInput"
-                style="display: none"
-                accept=".syn"
-                @change="onChange($event, 'syn')"
-              />
-              <template v-if="!synFile">
-                <v-icon size="40">mdi-cloud-upload</v-icon>
-                <p>ファイルのアップロード</p>
-                <p class="text-caption">Size limit: xxx KB</p>
-              </template>
-              <template v-else>
-                <div class="file-name">{{ synFile.name }}</div>
-                <v-progress-linear
-                  v-if="synProgress > 0"
-                  :model-value="synProgress"
-                  height="6"
-                  color="primary"
-                  class="mt-2"
-                />
-              </template>
-            </div>
-          </v-col>
-        </v-row>
-      </v-container>
-    </div>
+              NEXT
+            </v-btn>
+          </div>
+        </v-stepper-window-item>
 
-    <!-- フッター -->
-    <div class="_footer nav-footer">
-      <v-btn color="secondary" variant="outlined" @click="goBack">戻る</v-btn>
-      <v-btn
-        color="primary"
-        :disabled="!aviFile || !synFile"
-        @click="uploadBoth"
-      >
-        NEXT
-      </v-btn>
-    </div>
+        <!-- Step 3 -->
+        <v-stepper-window-item :value="3">
+          <v-card flat>
+            <v-card-text>アップロード完了！次の処理をここに記述</v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn variant="outlined" @click="step = 2">戻る</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-stepper-window-item>
+      </v-stepper-window>
+    </v-stepper>
   </div>
 </template>
 
@@ -116,7 +137,7 @@ import { ref } from "vue";
 import axios from "axios";
 import { dialogService } from "@/services/dialogService";
 
-const step = 2;
+const step = ref(1);
 
 const aviFile = ref<File | null>(null);
 const synFile = ref<File | null>(null);
@@ -129,18 +150,14 @@ const draggingSyn = ref(false);
 const aviProgress = ref(0);
 const synProgress = ref(0);
 
-const goBack = () => {
-  history.back();
+const triggerFile = (type: "avi" | "syn") => {
+  if (type === "avi") aviInput.value?.click();
+  else synInput.value?.click();
 };
 
 const isValidExtension = (file: File, expected: "avi" | "syn") => {
   const ext = file.name.split(".").pop()?.toLowerCase();
   return expected === "avi" ? ext === "avi" : ext === "syn";
-};
-
-const triggerFile = (type: "avi" | "syn") => {
-  if (type === "avi") aviInput.value?.click();
-  else synInput.value?.click();
 };
 
 const onChange = (e: Event, type: "avi" | "syn") => {
@@ -233,21 +250,16 @@ const uploadBoth = async () => {
     });
   }
 };
+
+const handleUploadAndNext = async () => {
+  await uploadBoth();
+  step.value = 3;
+};
 </script>
 
 <style scoped>
-.my-container {
-  min-height: 100%;
-  padding: 2rem;
-  box-sizing: border-box;
-  background-color: #fff;
-  display: flex;
-  flex-direction: column;
-}
-.stepper-wrapper {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
+.layout-content {
+  padding: 24px;
 }
 .drop-zone {
   border: 2px dashed #888;
@@ -272,20 +284,9 @@ const uploadBoth = async () => {
   font-weight: 500;
   text-align: center;
 }
-
-/* ✅ フッターの左右固定ボタン配置（左メニュー40px分の余白を確保） */
 .nav-footer {
-  position: fixed;
-  bottom: 24px;
-  left: 40px; /* 左メニューの幅分だけずらす */
-  width: calc(100% - 40px); /* 横幅も左メニュー分だけ狭める */
-  padding: 0 24px;
+  padding: 24px 0;
   display: flex;
   justify-content: space-between;
-  z-index: 100;
-  pointer-events: none; /* ボタン以外のエリアはクリックできないように */
-}
-.nav-footer > .v-btn {
-  pointer-events: auto;
 }
 </style>
