@@ -3,17 +3,23 @@
     <v-row class="fill-height" align="center" justify="center">
       <v-col cols="12" md="10" lg="8">
         <v-row dense>
-          <!-- AVIアップロード -->
-          <v-col cols="12" md="6">
+          <!-- v-col：12分割中の6カラム。md以上の画面幅で左右2列に -->
+          <v-col
+            cols="12"
+            md="6"
+            class="d-flex flex-column align-center justify-center pa-4"
+            style="height: 30vh"
+          >
+            <!-- アップロードボックス本体 -->
             <div
-              class="drop-zone"
-              :class="{ 'drop-zone--hover': draggingAvi }"
+              class="w-100 h-100 d-flex flex-column align-center justify-center rounded border-dashed"
               @dragover.prevent
               @dragenter.prevent="draggingAvi = true"
               @dragleave.prevent="draggingAvi = false"
               @drop.prevent="onDrop($event, 'avi')"
               @click="triggerFile('avi')"
             >
+              <!-- 隠しファイル選択ボックス -->
               <input
                 type="file"
                 ref="aviInput"
@@ -21,17 +27,28 @@
                 accept=".avi"
                 @change="onChange($event, 'avi')"
               />
+
+              <!-- ファイル未選択時の表示 -->
               <template v-if="!aviFile">
+                <!-- アイコンサイズは40px -->
                 <v-icon size="40">mdi-cloud-upload</v-icon>
-                <p>AVIファイルのアップロード</p>
+
+                <!-- ファイルアップロード案内 -->
+                <p class="text-subtitle-2 mt-2">AVIファイルのアップロード</p>
+                <p class="text-caption">Size limit: xxx GB</p>
               </template>
+
+              <!-- ファイル選択後の表示 -->
               <template v-else>
-                <div class="file-name">{{ aviFile.name }}</div>
+                <!-- 選択ファイル名表示 -->
+                <div class="text-body-2">{{ aviFile.name }}</div>
+
+                <!-- プログレスバー表示（モデル値で進捗制御） -->
                 <v-progress-linear
                   :model-value="aviProgress"
                   height="6"
                   color="primary"
-                  class="mt-2"
+                  class="mt-2 w-100"
                 />
               </template>
             </div>
