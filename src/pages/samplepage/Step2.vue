@@ -54,17 +54,23 @@
             </div>
           </v-col>
 
-          <!-- SYNアップロード -->
-          <v-col cols="12" md="6">
+          <!-- v-col：12分割中の6カラム。md以上の画面幅で左右2列に -->
+          <v-col
+            cols="12"
+            md="6"
+            class="d-flex flex-column align-center justify-center pa-4"
+            style="height: 30vh"
+          >
+            <!-- アップロードボックス本体 -->
             <div
-              class="drop-zone"
-              :class="{ 'drop-zone--hover': draggingSyn }"
+              class="w-100 h-100 d-flex flex-column align-center justify-center rounded border-dashed"
               @dragover.prevent
               @dragenter.prevent="draggingSyn = true"
               @dragleave.prevent="draggingSyn = false"
               @drop.prevent="onDrop($event, 'syn')"
               @click="triggerFile('syn')"
             >
+              <!-- ファイル選択のための非表示input -->
               <input
                 type="file"
                 ref="synInput"
@@ -72,17 +78,28 @@
                 accept=".syn"
                 @change="onChange($event, 'syn')"
               />
+
+              <!-- ファイル未選択時の表示 -->
               <template v-if="!synFile">
+                <!-- アップロードアイコン -->
                 <v-icon size="40">mdi-cloud-upload</v-icon>
-                <p>SYNファイルのアップロード</p>
+
+                <!-- アップロード説明テキスト -->
+                <p class="text-subtitle-2 mt-2">SYNファイルのアップロード</p>
+                <p class="text-caption">Size limit: xxx KB</p>
               </template>
+
+              <!-- ファイル選択済みの表示 -->
               <template v-else>
-                <div class="file-name">{{ synFile.name }}</div>
+                <!-- ファイル名 -->
+                <div class="text-body-2">{{ synFile.name }}</div>
+
+                <!-- プログレスバー -->
                 <v-progress-linear
                   :model-value="synProgress"
                   height="6"
                   color="primary"
-                  class="mt-2"
+                  class="mt-2 w-100"
                 />
               </template>
             </div>
