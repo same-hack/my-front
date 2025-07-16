@@ -10,12 +10,17 @@ export const useUploadStore = defineStore("upload", () => {
   const aviFile = ref<File | null>(null);
   const synFile = ref<File | null>(null);
 
+  // ← ここにアップロード完了フラグを追加
+  const uploadCompleted = ref(false);
+
   // 進捗率
   const aviProgress = ref(0);
   const synProgress = ref(0);
 
   // ファイル設定
   const setFile = (type: "avi" | "syn", file: File) => {
+    // アップロード完了していたら上書き禁止
+    if (uploadCompleted.value) return;
     if (type === "avi") aviFile.value = file;
     else synFile.value = file;
   };
@@ -42,8 +47,8 @@ export const useUploadStore = defineStore("upload", () => {
         message: "2ファイルがアップロードされました",
       });
 
-      aviFile.value = null;
-      synFile.value = null;
+      // アップロード完了フラグを立てる
+      uploadCompleted.value = true;
     } catch (e) {
       console.error(e);
       await dialogService.alert({
@@ -58,6 +63,7 @@ export const useUploadStore = defineStore("upload", () => {
     synFile,
     aviProgress,
     synProgress,
+    uploadCompleted, // ← 返却も忘れずに
     setFile,
     uploadBoth,
   };
