@@ -1,0 +1,47 @@
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from minio import Minio
+import subprocess
+from io import BytesIO
+
+app = FastAPI()
+
+# MinIOクライアント設定
+minio_client = Minio(
+    "localhost:9000",
+    access_key="minioadmin",
+    secret_key="minioadmin",
+    secure=False
+)
+
+BUCKET = "videos"
+
+@app.get("/snapshot/{filename}")
+def get_snapshot(filename: str, time: float = 0.0):
+    """
+    動画から指定時間のフレームを切り出して返す
+    - filename: 動画ファイル名
+    - time: 秒単位で切り出したい時間
+    """
+
+    # MinIOから動画を一時バイトストリームで取得
+    video_obj = minio_client.get_object(BUCKET, filename)
+    video_bytes = video_obj.read()
+
+    # ffmpegでメモリ上の動画から画像を切り出す
+    # -ss: 開始時間, -frames:v 1: 1フレームだけ取得, pipe:1: stdoutに出力
+    cmd = [
+        "ffmpeg",
+        "-i", "pipe:0",       # 標準入力から動画を読み込む
+        "-ss", str(time),      # 切り出す時間（秒）
+        "-frames:v", "1",      # 1フレームだけ
+        "-f", "image2",
+        "pipe:1"               # 標準出力に画像を出力
+    ]
+
+    # ffmpegをサブプロセスで実行
+    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = process.communicate(input=video_bytes)
+
+    # BytesIOにラップしてStreamingResponseで返す
+    return StreamingResponse(BytesIO(out), media_type="image/jpeg")
