@@ -1,46 +1,66 @@
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from io import BytesIO
 import subprocess
 
-def get_fps(video_path: str) -> float:
+app = FastAPI()
+
+def get_fps(video_bytes: bytes) -> float:
     """
-    ffprobeを使って動画のfpsを取得する
+    ffprobe を使って動画の FPS を取得する
+    video_bytes を pipe 経由で ffprobe に渡す
     """
     cmd = [
         "ffprobe", "-v", "0",
         "-of", "csv=p=0",
         "-select_streams", "v:0",
         "-show_entries", "stream=r_frame_rate",
-        video_path
+        "pipe:0"
     ]
-    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    fps_str = result.stdout.strip()
-    # 例: "30/1" → 30.0 に変換
-    num, den = map(int, fps_str.split("/"))
-    return num / den if den != 0 else 0.0
+    result = subprocess.run(
+        cmd,
+        input=video_bytes,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    fps_str = result.stdout.decode().strip()  # 例: "30/1" や "30000/1001"
+    if "/" in fps_str:
+        num, den = map(int, fps_str.split("/"))
+        return num / den if den != 0 else 0.0
+    return float(fps_str)
 
 
-def extract_frame(video_path: str, frame_number: int, output_path: str):
+@app.get("/snapshot/{filename}")
+def snapshot(filename: str, frame: int = 0):
     """
-    指定したフレーム番号から画像を切り出す
+    MinIO から取得した動画から指定フレームを切り出して返す
+    - frame: フレーム番号（0 始まり）
     """
-    fps = get_fps(video_path)
-    seconds = frame_number / fps  # 秒数に変換
+    # 1. MinIO から動画データを取得
+    video_bytes = b"".join(stream_minio(filename))  # stream_minio は既存の関数
 
-    # ffmpegコマンドで切り出し
+    # 2. fps を取得してフレーム番号を秒に変換
+    fps = get_fps(video_bytes)
+    seconds = frame / fps if fps > 0 else 0.0
+
+    # 3. ffmpeg コマンドを構築
     cmd = [
-        "ffmpeg", "-y",  # 上書き
-        "-ss", str(seconds),
-        "-i", video_path,
+        "ffmpeg",
+        "-ss", str(seconds),   # 秒単位で指定
+        "-i", "pipe:0",
         "-frames:v", "1",
-        output_path
+        "-f", "image2",
+        "pipe:1"
     ]
-    subprocess.run(cmd, check=True)
 
-    print(f"フレーム {frame_number} を秒数 {seconds:.3f}s で切り出しました (fps={fps})")
+    # 4. ffmpeg を実行
+    process = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    out, err = process.communicate(input=video_bytes)
 
-
-# --- 使い方 ---
-video_file = "input.mp4"
-frame_number = 1234
-output_file = "frame1234.jpg"
-
-extract_frame(video_file, frame_number, output_file)
+    # 5. JPEG 画像として返す
+    return StreamingResponse(BytesIO(out), media_type="image/jpeg")
