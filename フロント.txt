@@ -1,0 +1,25 @@
+// 例: ファイルを1MBごとに分割してアップロード
+const uploadFile = async (file) => {
+  const chunkSize = 1 * 1024 * 1024; // 1MB
+  let start = 0;
+  let partNumber = 1;
+
+  while (start < file.size) {
+    const chunk = file.slice(start, start + chunkSize);
+    const formData = new FormData();
+    formData.append("file", chunk);
+    formData.append("uploadId", uploadId);   // FastAPIから受け取ったマルチパートアップロードID
+    formData.append("partNumber", partNumber);
+
+    await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    start += chunkSize;
+    partNumber++;
+  }
+
+  // 全チャンク送信後、完了APIを叩く
+  await fetch(`/api/upload/complete?uploadId=${uploadId}`, { method: "POST" });
+};

@@ -7,7 +7,6 @@ import axios from "axios";
  */
 export const uploadService = {
   CHUNK_SIZE: 10 * 1024 * 1024, // 10MBずつチャンク分割
-
   async uploadFile(file: File, progressCallback: (percent: number) => void) {
     const totalChunks = Math.ceil(file.size / this.CHUNK_SIZE);
 

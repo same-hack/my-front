@@ -1,0 +1,40 @@
+from fastapi import FastAPI, UploadFile, Form
+from minio import Minio
+
+app = FastAPI()
+
+# MinIOクライアント
+minio_client = Minio(
+    "minio:9000",
+    access_key="minioadmin",
+    secret_key="minioadmin",
+    secure=False
+)
+
+BUCKET_NAME = "videos"
+
+@app.post("/upload/init")
+def init_upload(filename: str):
+    # マルチパートアップロードを開始
+    upload_id = minio_client._create_multipart_upload(BUCKET_NAME, filename)
+    return {"uploadId": upload_id}
+
+@app.post("/upload")
+async def upload_chunk(file: UploadFile, uploadId: str = Form(...), partNumber: int = Form(...)):
+    # ファイルをサーバに保存せず、そのままMinIOに転送
+    etag = minio_client._upload_part(
+        BUCKET_NAME,
+        file.filename,
+        upload_id=uploadId,
+        part_number=partNumber,
+        data=file.file,        # Streamingで転送
+        length=-1,             # 不明サイズでもOK
+    )
+    return {"etag": etag, "partNumber": partNumber}
+
+@app.post("/upload/complete")
+def complete_upload(uploadId: str, filename: str):
+    # 各partのETagを集めて完了処理
+    parts = [...]  # ここはフロント側かDBで管理したpartNumberとetagを渡す
+    result = minio_client._complete_multipart_upload(BUCKET_NAME, filename, uploadId, parts)
+    return {"result": "ok", "location": result}
