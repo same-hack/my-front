@@ -1,40 +1,62 @@
 from fastapi import FastAPI, UploadFile, Form
-from minio import Minio
+import boto3
 
 app = FastAPI()
 
-# MinIOクライアント
-minio_client = Minio(
-    "minio:9000",
-    access_key="minioadmin",
-    secret_key="minioadmin",
-    secure=False
+# MinIO 接続設定（S3Client利用）
+s3_client = boto3.client(
+    "s3",
+    endpoint_url="http://minio:9000",  # MinIOのエンドポイント
+    aws_access_key_id="minioadmin",
+    aws_secret_access_key="minioadmin",
+    region_name="us-east-1"            # MinIOの場合は何でもOK
 )
 
 BUCKET_NAME = "videos"
 
 @app.post("/upload/init")
-def init_upload(filename: str):
-    # マルチパートアップロードを開始
-    upload_id = minio_client._create_multipart_upload(BUCKET_NAME, filename)
-    return {"uploadId": upload_id}
+def init_upload(filename: str = Form(...)):
+    # マルチパートアップロード開始
+    res = s3_client.create_multipart_upload(Bucket=BUCKET_NAME, Key=filename)
+    return {"uploadId": res["UploadId"], "filename": filename}
 
 @app.post("/upload")
-async def upload_chunk(file: UploadFile, uploadId: str = Form(...), partNumber: int = Form(...)):
-    # ファイルをサーバに保存せず、そのままMinIOに転送
-    etag = minio_client._upload_part(
-        BUCKET_NAME,
-        file.filename,
-        upload_id=uploadId,
-        part_number=partNumber,
-        data=file.file,        # Streamingで転送
-        length=-1,             # 不明サイズでもOK
+async def upload_chunk(
+    file: UploadFile,
+    uploadId: str = Form(...),
+    filename: str = Form(...),
+    partNumber: int = Form(...)
+):
+    # 直接 MinIO にチャンクを送信（ストリーミング）
+    res = s3_client.upload_part(
+        Bucket=BUCKET_NAME,
+        Key=filename,
+        UploadId=uploadId,
+        PartNumber=partNumber,
+        Body=file.file  # ← UploadFile は file-like object
     )
-    return {"etag": etag, "partNumber": partNumber}
+    return {"etag": res["ETag"], "partNumber": partNumber}
 
 @app.post("/upload/complete")
-def complete_upload(uploadId: str, filename: str):
-    # 各partのETagを集めて完了処理
-    parts = [...]  # ここはフロント側かDBで管理したpartNumberとetagを渡す
-    result = minio_client._complete_multipart_upload(BUCKET_NAME, filename, uploadId, parts)
-    return {"result": "ok", "location": result}
+async def complete_upload(
+    filename: str = Form(...),
+    uploadId: str = Form(...),
+    parts: str = Form(...)  # JSON文字列で受け取る想定
+):
+    import json
+    parts_list = json.loads(parts)  # [{"partNumber": 1, "etag": "xxx"}, ...]
+
+    # boto3用に整形
+    completed_parts = [
+        {"ETag": p["etag"], "PartNumber": int(p["partNumber"])}
+        for p in parts_list
+    ]
+
+    s3_client.complete_multipart_upload(
+        Bucket=BUCKET_NAME,
+        Key=filename,
+        UploadId=uploadId,
+        MultipartUpload={"Parts": completed_parts}
+    )
+
+    return {"result": "ok", "filename": filename}
