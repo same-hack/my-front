@@ -1,62 +1,26 @@
 from fastapi import FastAPI, UploadFile, Form
-import boto3
+from pydantic import BaseModel
+from typing import List
 
-app = FastAPI()
+class Part(BaseModel):
+    partNumber: int
+    etag: str
 
-# MinIO 接続設定（S3Client利用）
-s3_client = boto3.client(
-    "s3",
-    endpoint_url="http://minio:9000",  # MinIOのエンドポイント
-    aws_access_key_id="minioadmin",
-    aws_secret_access_key="minioadmin",
-    region_name="us-east-1"            # MinIOの場合は何でもOK
-)
-
-BUCKET_NAME = "videos"
-
-@app.post("/upload/init")
-def init_upload(filename: str = Form(...)):
-    # マルチパートアップロード開始
-    res = s3_client.create_multipart_upload(Bucket=BUCKET_NAME, Key=filename)
-    return {"uploadId": res["UploadId"], "filename": filename}
-
-@app.post("/upload")
-async def upload_chunk(
-    file: UploadFile,
-    uploadId: str = Form(...),
-    filename: str = Form(...),
-    partNumber: int = Form(...)
-):
-    # 直接 MinIO にチャンクを送信（ストリーミング）
-    res = s3_client.upload_part(
-        Bucket=BUCKET_NAME,
-        Key=filename,
-        UploadId=uploadId,
-        PartNumber=partNumber,
-        Body=file.file  # ← UploadFile は file-like object
-    )
-    return {"etag": res["ETag"], "partNumber": partNumber}
+class CompleteRequest(BaseModel):
+    filename: str
+    uploadId: str
+    parts: List[Part]
 
 @app.post("/upload/complete")
-async def complete_upload(
-    filename: str = Form(...),
-    uploadId: str = Form(...),
-    parts: str = Form(...)  # JSON文字列で受け取る想定
-):
-    import json
-    parts_list = json.loads(parts)  # [{"partNumber": 1, "etag": "xxx"}, ...]
-
-    # boto3用に整形
+async def complete_upload(req: CompleteRequest):
     completed_parts = [
-        {"ETag": p["etag"], "PartNumber": int(p["partNumber"])}
-        for p in parts_list
+        {"ETag": p.etag, "PartNumber": p.partNumber}
+        for p in req.parts
     ]
-
     s3_client.complete_multipart_upload(
         Bucket=BUCKET_NAME,
-        Key=filename,
-        UploadId=uploadId,
+        Key=req.filename,
+        UploadId=req.uploadId,
         MultipartUpload={"Parts": completed_parts}
     )
-
-    return {"result": "ok", "filename": filename}
+    return {"result": "ok", "filename": req.filename}
