@@ -1,28 +1,35 @@
 <template>
-  <v-container fluid class="d-flex flex-column" style="height:100vh;" gap="2vh">
-    <!-- 緑部分 -->
-    <v-sheet color="green" height="5vh" class="d-flex align-center justify-center">
-      5%
-    </v-sheet>
+  <v-container fluid class="d-flex flex-column" style="height:100vh;">
+    <!-- 画面上の余白 -->
+    <v-spacer style="height:2vh;" />
 
-    <!-- 黄色 + 青部分 -->
-    <v-row no-gutters gap="2vh">
+    <!-- 緑 -->
+    <v-sheet color="green" height="5vh" />
+
+    <!-- マージン -->
+    <v-spacer style="height:2vh;" />
+
+    <!-- 黄色 + 青 -->
+    <v-row no-gutters>
       <v-col cols="6">
-        <v-sheet color="yellow" height="20vh" class="d-flex align-center justify-center">
-          20%
-        </v-sheet>
+        <v-sheet color="yellow" height="20vh" />
       </v-col>
       <v-col cols="6">
-        <v-sheet color="blue" height="20vh" class="d-flex align-center justify-center">
-          20%
-        </v-sheet>
+        <v-sheet color="blue" height="20vh" />
       </v-col>
     </v-row>
 
-    <!-- 赤部分（残り全部 + スクロール） -->
-    <v-sheet color="red" class="flex-grow-1 overflow-auto pa-4">
-      のこり全て<br>
-      <div v-for="i in 50" :key="i">アイテム {{ i }}</div>
+    <!-- マージン -->
+    <v-spacer style="height:2vh;" />
+
+    <!-- 赤（残り全部＋スクロール） -->
+    <v-sheet color="red" class="flex-grow-1 overflow-auto">
+      <div v-for="i in 50" :key="i">
+        アイテム {{ i }}
+      </div>
     </v-sheet>
+
+    <!-- 画面下の余白 -->
+    <v-spacer style="height:2vh;" />
   </v-container>
 </template>
