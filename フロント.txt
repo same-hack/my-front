@@ -1,48 +1,29 @@
-// /src/services/uploadService.js
+<template>
+  <v-container fluid class="d-flex flex-column" style="margin:2vh; height:96vh;">
+    <!-- 緑部分 -->
+    <v-sheet color="green" height="5vh" class="d-flex align-center justify-center">
+      5%
+    </v-sheet>
 
-const API_BASE = "/api/upload";
+    <!-- 黄色 + 青部分 -->
+    <v-row no-gutters>
+      <v-col cols="6">
+        <v-sheet color="yellow" height="20vh" class="d-flex align-center justify-center">
+          20%
+        </v-sheet>
+      </v-col>
+      <v-col cols="6">
+        <v-sheet color="blue" height="20vh" class="d-flex align-center justify-center">
+          20%
+        </v-sheet>
+      </v-col>
+    </v-row>
 
-// ファイルをチャンク分割して FastAPI 経由で MinIO へ送る
-export async function uploadFile(file, chunkSizeMB = 5) {
-  const chunkSize = chunkSizeMB * 1024 * 1024; // デフォルト5MB
-  let start = 0;
-  let partNumber = 1;
-  let parts = [];
-
-  // 1. init（uploadIdを取得）
-  const initRes = await fetch(`${API_BASE}/init`, {
-    method: "POST",
-    body: new URLSearchParams({ filename: file.name }),
-  });
-  const { uploadId } = await initRes.json();
-
-  // 2. チャンク送信ループ
-  while (start < file.size) {
-    const chunk = file.slice(start, start + chunkSize);
-    const formData = new FormData();
-    formData.append("file", chunk);
-    formData.append("uploadId", uploadId);
-    formData.append("filename", file.name);
-    formData.append("partNumber", partNumber);
-
-    const res = await fetch(`${API_BASE}`, {
-      method: "POST",
-      body: formData,
-    });
-    const { etag } = await res.json();
-
-    parts.push({ partNumber, etag });
-
-    start += chunkSize;
-    partNumber++;
-  }
-
-  // 3. complete（ETag情報をまとめてMinIOに結合させる）
-  await fetch(`${API_BASE}/complete`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ filename: file.name, uploadId, parts }),
-  });
-
-  return { success: true, filename: file.name };
-}
+    <!-- 赤部分（残り全部 + スクロール） -->
+    <v-sheet color="red" class="flex-grow-1 overflow-auto d-flex align-center justify-center">
+      のこり全て<br>
+      コンテンツが多いとスクロールされます<br>
+      <div v-for="i in 50" :key="i">アイテム {{ i }}</div>
+    </v-sheet>
+  </v-container>
+</template>
