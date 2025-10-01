@@ -1,12 +1,12 @@
 <template>
-  <v-container fluid class="d-flex flex-column" style="margin:2vh; height:96vh;">
+  <v-container fluid class="d-flex flex-column" style="height:100vh;" gap="2vh">
     <!-- 緑部分 -->
     <v-sheet color="green" height="5vh" class="d-flex align-center justify-center">
       5%
     </v-sheet>
 
     <!-- 黄色 + 青部分 -->
-    <v-row no-gutters>
+    <v-row no-gutters gap="2vh">
       <v-col cols="6">
         <v-sheet color="yellow" height="20vh" class="d-flex align-center justify-center">
           20%
@@ -20,9 +20,8 @@
     </v-row>
 
     <!-- 赤部分（残り全部 + スクロール） -->
-    <v-sheet color="red" class="flex-grow-1 overflow-auto d-flex align-center justify-center">
+    <v-sheet color="red" class="flex-grow-1 overflow-auto pa-4">
       のこり全て<br>
-      コンテンツが多いとスクロールされます<br>
       <div v-for="i in 50" :key="i">アイテム {{ i }}</div>
     </v-sheet>
   </v-container>
