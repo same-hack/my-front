@@ -1,64 +1,90 @@
 <template>
-  <v-container fluid class="page-container d-flex flex-column">
-    <v-row class="title-row mb-2">
-      <v-col cols="12">
-        <h1>検索ページ</h1>
-      </v-col>
-    </v-row>
+  <div class="page-wrapper" style="height: 100vh; position: relative">
+    <v-container fluid class="pa-4">
+      <!-- タイトル -->
+      <v-row class="mb-2 justify-start align-start">
+        <v-col cols="12">
+          <h1 class="text-white">検索ページ</h1>
+        </v-col>
+      </v-row>
 
-    <v-row class="search-row mb-2">
-      <v-col cols="12" md="6">
-        <div class="search-container">
-          <v-text-field
-            v-model="query"
-            variant="underlined"
-            density="comfortable"
-            placeholder="検索キーワードを入力"
-            append-inner-icon="mdi-magnify"
-            @click:append-inner="onSearch"
-            @input="onInput"
-            hide-details="auto"
-            class="white-text-field"
-          ></v-text-field>
+      <!-- 検索欄 -->
+      <v-row class="mb-2 justify-start align-start">
+        <v-col cols="12" md="6">
+          <v-menu
+            v-model="menu"
+            :close-on-content-click="false"
+            :activator="activatorRef"
+            offset-y
+          >
+            <template #activator="{ props }">
+              <v-text-field
+                v-model="query"
+                variant="underlined"
+                density="comfortable"
+                placeholder="検索キーワードを入力"
+                append-inner-icon="mdi-magnify"
+                @click:append-inner="onSearch"
+                @input="onInput"
+                v-bind="props"
+                class="text-white"
+              />
+            </template>
 
-          <v-list v-if="suggestions.length" class="suggest-list" elevation="4">
-            <v-list-item
-              v-for="(item, i) in suggestions"
-              :key="i"
-              @click="selectSuggestion(item)"
-              class="suggest-item"
+            <v-list v-if="suggestions.length" elevation="4" class="bg-white">
+              <v-list-item
+                v-for="(item, i) in suggestions"
+                :key="i"
+                @click="selectSuggestion(item)"
+              >
+                <v-list-item-title class="text-body-1">{{
+                  item.title
+                }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </v-col>
+      </v-row>
+
+      <!-- 検索結果 -->
+      <v-row
+        v-if="selectedItem"
+        class="overflow-auto justify-start align-start"
+      >
+        <v-col cols="12">
+          <v-container fluid class="pa-0">
+            <v-row
+              class="grey--text text--darken-1 text-caption mb-1 justify-start align-start"
             >
-              <v-list-item-title>{{ item.title }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </div>
-      </v-col>
-    </v-row>
+              <v-col cols="5">タイトル</v-col>
+              <v-col cols="2">作成者</v-col>
+              <v-col cols="3">管理者</v-col>
+              <v-col cols="2">日付</v-col>
+            </v-row>
 
-    <v-row class="result-row" v-if="selectedItem">
-      <v-col cols="12">
-        <v-container fluid>
-          <v-row class="result-header mb-1">
-            <v-col cols="5">タイトル</v-col>
-            <v-col cols="2">作成者</v-col>
-            <v-col cols="3">管理者</v-col>
-            <v-col cols="2">日付</v-col>
-          </v-row>
+            <v-row class="mb-1 justify-start align-start">
+              <v-col cols="5" class="font-weight-medium text-subtitle-1">{{
+                selectedItem.title
+              }}</v-col>
+              <v-col cols="2">{{ selectedItem.author }}</v-col>
+              <v-col cols="3">{{ selectedItem.admin }}</v-col>
+              <v-col cols="2">{{ selectedItem.date }}</v-col>
+            </v-row>
+          </v-container>
+        </v-col>
+      </v-row>
+    </v-container>
 
-          <v-row class="result-data mb-1">
-            <v-col cols="5" class="data-title">{{ selectedItem.title }}</v-col>
-            <v-col cols="2">{{ selectedItem.author }}</v-col>
-            <v-col cols="3">{{ selectedItem.admin }}</v-col>
-            <v-col cols="2">{{ selectedItem.date }}</v-col>
-          </v-row>
-        </v-container>
-      </v-col>
-    </v-row>
-
-    <v-btn class="close-btn" color="red darken-1" dark @click="onClose">
+    <!-- CLOSEボタン（ラッパー div に対して右下固定） -->
+    <v-btn
+      color="red darken-1"
+      dark
+      style="position: absolute; bottom: 16px; right: 16px"
+      @click="onClose"
+    >
       CLOSE
     </v-btn>
-  </v-container>
+  </div>
 </template>
 
 <script setup>
@@ -90,11 +116,14 @@ const items = [
 const query = ref("");
 const suggestions = ref([]);
 const selectedItem = ref(null);
+const menu = ref(false);
+const activatorRef = ref(null);
 
 const onInput = () => {
   const q = query.value.trim();
   suggestions.value =
     q === "" ? [] : items.filter((item) => item.title.includes(q));
+  menu.value = suggestions.value.length > 0;
 };
 
 const onSearch = () => {
@@ -105,93 +134,13 @@ const selectSuggestion = (item) => {
   selectedItem.value = item;
   query.value = item.title;
   suggestions.value = [];
+  menu.value = false;
 };
 
 const onClose = () => {
   selectedItem.value = null;
   query.value = "";
   suggestions.value = [];
+  menu.value = false;
 };
 </script>
-
-<style scoped>
-.page-container {
-  height: 100vh;
-  position: relative;
-  padding: 20px 40px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-.title-row {
-  flex: 0 0 auto;
-  margin-bottom: 4px;
-}
-
-.search-row {
-  flex: 0 0 auto;
-  margin-bottom: 4px;
-}
-
-.search-container {
-  position: relative;
-  max-width: 600px;
-}
-
-/* 文字・下線を常に白にする */
-.white-text-field .v-input__control {
-  color: white;
-}
-.white-text-field .v-field__outline::before,
-.white-text-field .v-field__underline {
-  border-color: white !important;
-}
-.white-text-field input {
-  color: white !important;
-}
-
-/* サジェストリスト */
-.suggest-list {
-  position: absolute;
-  width: 100%;
-  top: 100%;
-  left: 0;
-  z-index: 10;
-  cursor: pointer;
-  color: black;
-  background-color: white;
-}
-
-.suggest-item {
-  cursor: pointer;
-}
-
-.result-row {
-  flex: 1 1 auto;
-  overflow: auto;
-}
-
-.result-header {
-  font-size: 0.8rem;
-  color: #777;
-  margin-top: 0;
-  margin-bottom: 2px;
-}
-
-.data-title {
-  font-size: 1.3rem;
-  font-weight: 500;
-}
-
-.result-data {
-  margin-top: 0;
-  margin-bottom: 4px;
-}
-
-.close-btn {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-}
-</style>
