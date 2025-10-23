@@ -1,35 +1,12 @@
-<template>
-  <v-container fluid class="d-flex flex-column" style="height:100vh;">
-    <!-- 画面上の余白 -->
-    <v-spacer style="height:2vh;" />
+function formatDateTime(isoString) {
+  const date = new Date(isoString)
 
-    <!-- 緑 -->
-    <v-sheet color="green" height="5vh" />
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  const hh = String(date.getHours()).padStart(2, '0')
+  const mi = String(date.getMinutes()).padStart(2, '0')
+  const ss = String(date.getSeconds()).padStart(2, '0')
 
-    <!-- マージン -->
-    <v-spacer style="height:2vh;" />
-
-    <!-- 黄色 + 青 -->
-    <v-row no-gutters>
-      <v-col cols="6">
-        <v-sheet color="yellow" height="20vh" />
-      </v-col>
-      <v-col cols="6">
-        <v-sheet color="blue" height="20vh" />
-      </v-col>
-    </v-row>
-
-    <!-- マージン -->
-    <v-spacer style="height:2vh;" />
-
-    <!-- 赤（残り全部＋スクロール） -->
-    <v-sheet color="red" class="flex-grow-1 overflow-auto">
-      <div v-for="i in 50" :key="i">
-        アイテム {{ i }}
-      </div>
-    </v-sheet>
-
-    <!-- 画面下の余白 -->
-    <v-spacer style="height:2vh;" />
-  </v-container>
-</template>
+  return `${yyyy}/${mm}/${dd} ${hh}:${mi}:${ss}`
+}
