@@ -1,193 +1,239 @@
 <template>
-  <v-dialog v-model="visible" max-width="900">
-    <v-card class="pa-4" style="min-height: 420px; position: relative">
-      <h3 class="mb-4">3階層選択</h3>
+  <v-dialog v-model="isOpen" max-width="900px">
+    <v-card class="pa-4" height="500px">
+      <h2 class="mb-4">3階層ダイアログ</h2>
 
-      <div class="three-columns">
-        <!-- 左 -->
-        <div>
-          <h4>左</h4>
+      <div class="d-flex" style="height: 350px; min-height: 0">
+        <!-- 左エリア -->
+        <div class="scroll-area pa-2 border">
+          <h3>左</h3>
           <v-list>
             <v-list-item
-              v-for="item in leftList"
+              v-for="item in leftItems"
               :key="item.id"
+              :active="selectedLeft?.id === item.id"
               @click="selectLeft(item)"
-              :active="item.id === selectedLeft?.id"
             >
               {{ item.name }}
             </v-list-item>
           </v-list>
         </div>
 
-        <!-- 中央 -->
-        <div>
-          <h4>中央</h4>
-          <v-list>
-            <v-list-item
-              v-for="item in centerList"
+        <!-- 中央エリア -->
+        <div class="scroll-area pa-2 border">
+          <h3>中央</h3>
+
+          <!-- チェックボックスパターン -->
+          <template v-if="leftType === 0 || leftType === 2">
+            <v-checkbox
+              v-for="item in centerItems"
               :key="item.id"
-              @click="selectCenter(item)"
-              :active="item.id === selectedCenter?.id"
-            >
-              {{ item.name }}
-            </v-list-item>
-          </v-list>
+              :label="item.name"
+              v-model="selectedCenterMulti"
+              :value="item"
+            />
+          </template>
+
+          <!-- 通常選択 -->
+          <template v-else>
+            <v-list>
+              <v-list-item
+                v-for="item in centerItems"
+                :key="item.id"
+                :active="selectedCenter?.id === item.id"
+                @click="selectCenter(item)"
+              >
+                {{ item.name }}
+              </v-list-item>
+            </v-list>
+          </template>
         </div>
 
-        <!-- 右 -->
-        <div>
-          <h4>右</h4>
-          <v-list>
-            <v-list-item
-              v-for="item in rightList"
+        <!-- 右エリア -->
+        <div class="scroll-area pa-2 border">
+          <h3>右</h3>
+
+          <!-- 左=1（layer0） → 右なし -->
+          <template v-if="leftType === 0">
+            <div class="text-grey">右項目はありません</div>
+          </template>
+
+          <!-- 右チェックボックス -->
+          <template v-else-if="leftType === 1 || leftType === 2">
+            <v-checkbox
+              v-for="item in rightItems"
               :key="item.id"
-              @click="selectRight(item)"
-              :active="item.id === selectedRight?.id"
-            >
-              {{ item.name }}
-            </v-list-item>
-          </v-list>
+              :label="item.name"
+              v-model="selectedRightMulti"
+              :value="item"
+            />
+          </template>
         </div>
       </div>
 
-      <!-- 右下固定ボタン -->
-      <div class="dialog-footer">
-        <v-btn variant="text" @click="cancel">キャンセル</v-btn>
-        <v-btn color="primary" @click="add">追加</v-btn>
+      <!-- ボタン（右下固定） -->
+      <div class="d-flex justify-end mt-4">
+        <v-btn variant="tonal" class="mr-2" @click="cancel">キャンセル</v-btn>
+        <v-btn color="primary" @click="confirm">追加</v-btn>
       </div>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 const emit = defineEmits(["selected"]);
 
-const visible = ref(false);
+const isOpen = ref(false);
+const resolver = ref(null);
 
-/* ---------------- API ダミー ---------------- */
-const apiLeft = () =>
-  new Promise((r) =>
-    setTimeout(
-      () =>
-        r([
-          { id: 1, name: "左-1" },
-          { id: 2, name: "左-2" },
-          { id: 3, name: "左-3" },
-        ]),
-      200
-    )
-  );
+function open() {
+  reset();
+  loadLeft();
+  isOpen.value = true;
 
-const apiCenter = (leftId) =>
-  new Promise((r) =>
-    setTimeout(
-      () =>
-        r([
-          { id: leftId * 10 + 1, name: `中央-${leftId}-1` },
-          { id: leftId * 10 + 2, name: `中央-${leftId}-2` },
-        ]),
-      200
-    )
-  );
+  return new Promise((resolve) => {
+    resolver.value = resolve;
+  });
+}
 
-const apiRight = (centerId) =>
-  new Promise((r) =>
-    setTimeout(
-      () =>
-        r([
-          { id: centerId * 10 + 1, name: `右-${centerId}-1` },
-          { id: centerId * 10 + 2, name: `右-${centerId}-2` },
-        ]),
-      200
-    )
-  );
+defineExpose({ open });
 
-/* ---------------- データ ---------------- */
-const leftList = ref([]);
-const centerList = ref([]);
-const rightList = ref([]);
-
+// state
 const selectedLeft = ref(null);
 const selectedCenter = ref(null);
-const selectedRight = ref(null);
+const selectedCenterMulti = ref([]);
+const selectedRightMulti = ref([]);
 
-/* ---------------- 選択処理 ---------------- */
-async function selectLeft(item) {
+const leftType = ref(null);
+
+const leftItems = ref([]);
+const centerItems = ref([]);
+const rightItems = ref([]);
+
+// fake APIs
+function loadLeft() {
+  leftItems.value = [
+    { id: 1, name: "左-1", type_layer: 0 }, // 中央チェック
+    { id: 2, name: "左-2", type_layer: 1 }, // 中央単一→右チェック
+    { id: 3, name: "左-3", type_layer: 2 }, // 中央チェック→右チェック
+  ];
+}
+
+function loadCenter(leftId) {
+  centerItems.value = [
+    { id: leftId * 100 + 1, name: `中央-${leftId}-1` },
+    { id: leftId * 100 + 2, name: `中央-${leftId}-2` },
+    { id: leftId * 100 + 3, name: `中央-${leftId}-3` },
+  ];
+}
+
+async function loadRightForCenters(centerIds) {
+  const results = [];
+  for (const cid of centerIds) {
+    const items = [
+      { id: cid * 10 + 1, name: `右-${cid}-1` },
+      { id: cid * 10 + 2, name: `右-${cid}-2` },
+    ];
+    results.push(...items);
+  }
+
+  // 重複削除
+  const uniq = [];
+  const seen = new Set();
+  for (const it of results) {
+    if (!seen.has(it.id)) {
+      uniq.push(it);
+      seen.add(it.id);
+    }
+  }
+
+  await new Promise((r) => setTimeout(r, 100));
+  rightItems.value = uniq;
+}
+
+// handlers
+function selectLeft(item) {
   selectedLeft.value = item;
+  leftType.value = item.type_layer;
+
   selectedCenter.value = null;
-  selectedRight.value = null;
+  selectedCenterMulti.value = [];
+  selectedRightMulti.value = [];
 
-  centerList.value = [];
-  rightList.value = [];
+  centerItems.value = [];
+  rightItems.value = [];
 
-  centerList.value = await apiCenter(item.id);
+  loadCenter(item.id);
 }
 
-async function selectCenter(item) {
+function selectCenter(item) {
   selectedCenter.value = item;
-  selectedRight.value = null;
-  rightList.value = [];
 
-  rightList.value = await apiRight(item.id);
+  if (leftType.value === 1) {
+    loadRightForCenters([item.id]);
+  }
 }
 
-function selectRight(item) {
-  selectedRight.value = item;
-}
+watch(
+  selectedCenterMulti,
+  (newVal) => {
+    if (leftType.value === 2) {
+      const ids = newVal.map((i) => i.id);
+      if (ids.length > 0) {
+        loadRightForCenters(ids);
+      } else {
+        rightItems.value = [];
+        selectedRightMulti.value = [];
+      }
+    }
+  },
+  { deep: true }
+);
 
-/* ---------------- ボタン ---------------- */
-function cancel() {
-  visible.value = false;
-}
-
-function add() {
-  emit("selected", {
-    left: selectedLeft.value,
-    center: selectedCenter.value,
-    right: selectedRight.value,
-  });
-  visible.value = false;
-}
-
-/* ---------------- defineExpose ---------------- */
-async function open() {
-  visible.value = true;
-
-  // 左を初期ロード
-  leftList.value = await apiLeft();
-
-  // 選択状態クリア
+function reset() {
   selectedLeft.value = null;
   selectedCenter.value = null;
-  selectedRight.value = null;
-  centerList.value = [];
-  rightList.value = [];
+  selectedCenterMulti.value = [];
+  selectedRightMulti.value = [];
+
+  leftType.value = null;
+  leftItems.value = [];
+  centerItems.value = [];
+  rightItems.value = [];
 }
 
-function close() {
-  visible.value = false;
+function cancel() {
+  isOpen.value = false;
+  resolver.value?.(null);
 }
 
-defineExpose({
-  open,
-  close,
-});
+function confirm() {
+  isOpen.value = false;
+
+  const result = {
+    left: selectedLeft.value,
+    center:
+      leftType.value === 0 || leftType.value === 2
+        ? selectedCenterMulti.value
+        : selectedCenter.value,
+    right: selectedRightMulti.value,
+  };
+
+  emit("selected", result); // ← ★ 追加したのはここだけ ★
+  resolver.value?.(result);
+}
 </script>
 
 <style scoped>
-.three-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
+.border {
+  border: 1px solid #ccc;
 }
 
-.dialog-footer {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  display: flex;
-  gap: 16px;
+.scroll-area {
+  width: 33%;
+  overflow-y: auto;
+  min-height: 0;
 }
 </style>
