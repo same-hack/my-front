@@ -118,21 +118,14 @@ const onInput = async () => {
   }
 
   try {
-    // ★ 実際のAPIに置き換える想定 ★
-    // ここでは例としてGETパラメータにqを渡している
     const response = await fetch(
       `https://example.com/api/items?q=${encodeURIComponent(q)}`
     );
 
     if (!response.ok) throw new Error("APIエラー");
 
-    // APIが返すJSONデータを取得
     const data = await response.json();
-
-    // dataをサジェスト候補としてセット（構造に合わせて調整）
     suggestions.value = data.items || [];
-
-    // 候補があればメニューを開く
     menu.value = suggestions.value.length > 0;
   } catch (error) {
     console.error("サジェスト取得エラー:", error);
@@ -143,7 +136,6 @@ const onInput = async () => {
 
 /**
  * 検索アイコン押下時
- * → 将来的に本検索APIなどに接続予定
  */
 const onSearch = () => {
   console.log("検索実行:", query.value);
@@ -152,16 +144,27 @@ const onSearch = () => {
 /**
  * 候補クリック時
  */
-const selectSuggestion = (item) => {
+const selectSuggestion = async (item) => {
   selectedItem.value = item;
   query.value = item.title;
   suggestions.value = [];
   menu.value = false;
+
+  // ★追加: 選択されたIDで別APIを叩く
+  try {
+    const res = await fetch(`https://example.com/api/detail/${item.id}`);
+    if (!res.ok) throw new Error("詳細APIエラー");
+    const detail = await res.json();
+    console.log("詳細データ:", detail);
+    // 必要に応じてselectedItemに統合も可能
+    // selectedItem.value = { ...item, ...detail };
+  } catch (err) {
+    console.error("詳細API取得失敗:", err);
+  }
 };
 
 /**
  * CLOSEボタン押下時
- * → 状態を初期化
  */
 const onClose = () => {
   selectedItem.value = null;
