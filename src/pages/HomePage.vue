@@ -10,6 +10,7 @@
         <v-btn color="info" class="ma-2" to="/c">Page C</v-btn>
         <v-btn color="info" class="ma-2" to="/d">Page D</v-btn>
         <v-btn color="info" class="ma-2" to="/e">Page E</v-btn>
+        <v-btn color="info" class="ma-2" to="/f">Page F</v-btn>
         <v-btn color="secondary" class="ma-2" to="/users">User List</v-btn>
         <v-btn color="indigo" class="ma-2" to="/fastapi-users"
           >FastAPI User</v-btn
