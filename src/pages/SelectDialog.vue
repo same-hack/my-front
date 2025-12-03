@@ -3,10 +3,20 @@
     <v-card class="pa-4" height="500px">
       <h2 class="mb-4">3階層ダイアログ</h2>
 
+      <!-- 固定タイトル行 -->
+      <div class="d-flex text-center font-weight-bold border-bottom">
+        <div style="width: 33%; padding: 4px 0">左</div>
+        <div style="width: 33%; padding: 4px 0">中央</div>
+        <div style="width: 33%; padding: 4px 0">右</div>
+      </div>
+
+      <!-- ペイン本体 -->
       <div class="d-flex" style="height: 350px; min-height: 0">
         <!-- 左エリア -->
-        <div class="scroll-area pa-2 border">
-          <h3>左</h3>
+        <div
+          class="pa-2 border"
+          style="width: 33%; overflow-y: auto; min-height: 0"
+        >
           <v-list>
             <v-list-item
               v-for="item in leftItems"
@@ -20,12 +30,17 @@
         </div>
 
         <!-- 中央エリア -->
-        <div class="scroll-area pa-2 border">
-          <h3>中央</h3>
+        <div
+          class="pa-2 border"
+          style="width: 33%; overflow-y: auto; min-height: 0"
+        >
           <v-list>
             <template v-if="leftType === 0 || leftType === 2">
               <v-list-item v-for="item in centerItems" :key="item.id">
-                <label class="checkbox-label">
+                <label
+                  class="d-flex justify-space-between align-center"
+                  style="width: 100%; cursor: pointer"
+                >
                   <span>{{ item.name }}</span>
                   <input
                     type="checkbox"
@@ -50,11 +65,16 @@
         </div>
 
         <!-- 右エリア -->
-        <div class="scroll-area pa-2 border">
-          <h3>右</h3>
+        <div
+          class="pa-2 border"
+          style="width: 33%; overflow-y: auto; min-height: 0"
+        >
           <v-list v-if="leftType === 1 || leftType === 2">
             <v-list-item v-for="item in rightItems" :key="item.id">
-              <label class="checkbox-label">
+              <label
+                class="d-flex justify-space-between align-center"
+                style="width: 100%; cursor: pointer"
+              >
                 <span>{{ item.name }}</span>
                 <input
                   type="checkbox"
@@ -129,7 +149,6 @@ async function loadRightForCenters(centerIds) {
     results.push({ id: cid * 10 + 1, name: `右-${cid}-1` });
     results.push({ id: cid * 10 + 2, name: `右-${cid}-2` });
   }
-  // 重複削除
   const uniq = [];
   const seen = new Set();
   for (const it of results) {
@@ -139,7 +158,7 @@ async function loadRightForCenters(centerIds) {
     }
   }
   rightItems.value = uniq;
-  selectedRightMulti.value = []; // 右はリセット
+  selectedRightMulti.value = [];
 }
 
 // 左選択
@@ -209,23 +228,3 @@ function confirm() {
   resolver.value?.(result);
 }
 </script>
-
-<style scoped>
-.border {
-  border: 1px solid #ccc;
-}
-.scroll-area {
-  width: 33%;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-/* ラベル内で横並び */
-.checkbox-label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  cursor: pointer;
-}
-</style>
