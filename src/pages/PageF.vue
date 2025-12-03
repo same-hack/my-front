@@ -1,42 +1,49 @@
 <template>
   <v-container fluid>
-    <!-- 見出し -->
-    <v-row class="border-b">
-      <v-col cols="4" class="text-center font-weight-bold border-e">左</v-col>
-      <v-col cols="4" class="text-center font-weight-bold border-e">中央</v-col>
-      <v-col cols="4" class="text-center font-weight-bold">右</v-col>
-    </v-row>
+    <!-- 🔹 スクロール領域：データ部分だけ縦スクロール -->
+    <div style="max-height: 400px; overflow-y: auto">
+      <!-- 🔹 固定ヘッダー（sticky） -->
+      <v-row
+        class="border-b bg-white"
+        style="position: sticky; top: 0; z-index: 10"
+      >
+        <v-col cols="4" class="text-center font-weight-bold border-e">左</v-col>
+        <v-col cols="4" class="text-center font-weight-bold border-e"
+          >中央</v-col
+        >
+        <v-col cols="4" class="text-center font-weight-bold">右</v-col>
+      </v-row>
 
-    <v-row v-for="(row, i) in items" :key="i" class="border-b">
-      <!-- 左 -->
-      <v-col cols="4" class="border-e">
-        <div class="w-100 text-truncate">
-          {{ row.left.name }}
-        </div>
-      </v-col>
-
-      <!-- 中央 -->
-      <v-col cols="4" class="border-e">
-        <template v-if="Array.isArray(row.center)">
-          <div v-for="c in row.center" :key="c.id" class="w-100 text-truncate">
-            {{ c.name }}
-          </div>
-        </template>
-
-        <template v-else-if="row.center">
+      <!-- 🔹 スクロールするデータ部分 -->
+      <v-row v-for="(row, i) in items" :key="i" class="border-b">
+        <v-col cols="4" class="border-e">
           <div class="w-100 text-truncate">
-            {{ row.center.name }}
+            {{ row.left.name }}
           </div>
-        </template>
-      </v-col>
+        </v-col>
 
-      <!-- 右 -->
-      <v-col cols="4">
-        <div v-for="r in row.right" :key="r.id" class="w-100 text-truncate">
-          {{ r.name }}
-        </div>
-      </v-col>
-    </v-row>
+        <v-col cols="4" class="border-e">
+          <template v-if="Array.isArray(row.center)">
+            <div
+              v-for="c in row.center"
+              :key="c.id"
+              class="w-100 text-truncate"
+            >
+              {{ c.name }}
+            </div>
+          </template>
+          <template v-else-if="row.center">
+            <div class="w-100 text-truncate">{{ row.center.name }}</div>
+          </template>
+        </v-col>
+
+        <v-col cols="4">
+          <div v-for="r in row.right" :key="r.id" class="w-100 text-truncate">
+            {{ r.name }}
+          </div>
+        </v-col>
+      </v-row>
+    </div>
   </v-container>
 </template>
 
@@ -64,4 +71,51 @@ const items = [
     ],
   },
 ];
+
+const data = [
+  {
+    left: { id: 1, name: "左-1", type_layer: 0 },
+    center: [
+      { id: 101, name: "中央-1-1" },
+      { id: 102, name: "中央-1-2" },
+    ],
+    right: [],
+  },
+  { left: { id: 1, name: "左-1", type_layer: 0 }, center: [], right: [] },
+  {
+    left: { id: 2, name: "左-2", type_layer: 1 },
+    center: { id: 203, name: "中央-2-3" },
+    right: [
+      { id: 2031, name: "右-203-1" },
+      { id: 2032, name: "右-203-2" },
+    ],
+  },
+];
+
+const formatted = data.map((item) => {
+  const leftName = item.left.name;
+
+  // center は配列かオブジェクトか両方に対応
+  let centerNames: string[] = [];
+  if (Array.isArray(item.center)) {
+    centerNames = item.center.map((c) => c.name);
+  } else if (item.center) {
+    centerNames = [item.center.name];
+  }
+
+  // right は配列のみ
+  let rightNames: string[] = [];
+  if (Array.isArray(item.right)) {
+    rightNames = item.right.map((r) => r.name);
+  }
+
+  // 各グループを () で囲む
+  const parts = [leftName];
+  if (centerNames.length) parts.push(`(${centerNames.join(" | ")})`);
+  if (rightNames.length) parts.push(`(${rightNames.join(" | ")})`);
+
+  return parts.join(" ");
+});
+
+console.log(formatted);
 </script>
