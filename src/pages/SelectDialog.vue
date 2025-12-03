@@ -14,7 +14,7 @@
               :active="selectedLeft?.id === item.id"
               @click="selectLeft(item)"
             >
-              {{ item.name }}
+              <span>{{ item.name }}</span>
             </v-list-item>
           </v-list>
         </div>
@@ -22,56 +22,53 @@
         <!-- 中央エリア -->
         <div class="scroll-area pa-2 border">
           <h3>中央</h3>
+          <v-list>
+            <template v-if="leftType === 0 || leftType === 2">
+              <v-list-item v-for="item in centerItems" :key="item.id">
+                <label class="checkbox-label">
+                  <span>{{ item.name }}</span>
+                  <input
+                    type="checkbox"
+                    :value="item"
+                    v-model="selectedCenterMulti"
+                  />
+                </label>
+              </v-list-item>
+            </template>
 
-          <!-- チェックボックスパターン -->
-          <template v-if="leftType === 0 || leftType === 2">
-            <v-checkbox
-              v-for="item in centerItems"
-              :key="item.id"
-              :label="item.name"
-              v-model="selectedCenterMulti"
-              :value="item"
-            />
-          </template>
-
-          <!-- 通常選択 -->
-          <template v-else>
-            <v-list>
+            <template v-else>
               <v-list-item
                 v-for="item in centerItems"
                 :key="item.id"
                 :active="selectedCenter?.id === item.id"
                 @click="selectCenter(item)"
               >
-                {{ item.name }}
+                <span>{{ item.name }}</span>
               </v-list-item>
-            </v-list>
-          </template>
+            </template>
+          </v-list>
         </div>
 
         <!-- 右エリア -->
         <div class="scroll-area pa-2 border">
           <h3>右</h3>
-
-          <!-- 左=1（layer0） → 右なし -->
-          <template v-if="leftType === 0">
-            <div class="text-grey">右項目はありません</div>
-          </template>
-
-          <!-- 右チェックボックス -->
-          <template v-else-if="leftType === 1 || leftType === 2">
-            <v-checkbox
-              v-for="item in rightItems"
-              :key="item.id"
-              :label="item.name"
-              v-model="selectedRightMulti"
-              :value="item"
-            />
-          </template>
+          <v-list v-if="leftType === 1 || leftType === 2">
+            <v-list-item v-for="item in rightItems" :key="item.id">
+              <label class="checkbox-label">
+                <span>{{ item.name }}</span>
+                <input
+                  type="checkbox"
+                  :value="item"
+                  v-model="selectedRightMulti"
+                />
+              </label>
+            </v-list-item>
+          </v-list>
+          <div v-else class="text-grey">右項目はありません</div>
         </div>
       </div>
 
-      <!-- ボタン（右下固定） -->
+      <!-- ボタン -->
       <div class="d-flex justify-end mt-4">
         <v-btn variant="tonal" class="mr-2" @click="cancel">キャンセル</v-btn>
         <v-btn color="primary" @click="confirm">追加</v-btn>
@@ -82,7 +79,6 @@
 
 <script setup>
 import { ref, watch } from "vue";
-
 const emit = defineEmits(["selected"]);
 
 const isOpen = ref(false);
@@ -92,32 +88,30 @@ function open() {
   reset();
   loadLeft();
   isOpen.value = true;
-
   return new Promise((resolve) => {
     resolver.value = resolve;
   });
 }
-
 defineExpose({ open });
 
-// state
+// 選択状態
 const selectedLeft = ref(null);
 const selectedCenter = ref(null);
 const selectedCenterMulti = ref([]);
 const selectedRightMulti = ref([]);
-
 const leftType = ref(null);
 
+// データ
 const leftItems = ref([]);
 const centerItems = ref([]);
 const rightItems = ref([]);
 
-// fake APIs
+// データ読み込み
 function loadLeft() {
   leftItems.value = [
-    { id: 1, name: "左-1", type_layer: 0 }, // 中央チェック
-    { id: 2, name: "左-2", type_layer: 1 }, // 中央単一→右チェック
-    { id: 3, name: "左-3", type_layer: 2 }, // 中央チェック→右チェック
+    { id: 1, name: "左-1", type_layer: 0 },
+    { id: 2, name: "左-2", type_layer: 1 },
+    { id: 3, name: "左-3", type_layer: 2 },
   ];
 }
 
@@ -132,13 +126,9 @@ function loadCenter(leftId) {
 async function loadRightForCenters(centerIds) {
   const results = [];
   for (const cid of centerIds) {
-    const items = [
-      { id: cid * 10 + 1, name: `右-${cid}-1` },
-      { id: cid * 10 + 2, name: `右-${cid}-2` },
-    ];
-    results.push(...items);
+    results.push({ id: cid * 10 + 1, name: `右-${cid}-1` });
+    results.push({ id: cid * 10 + 2, name: `右-${cid}-2` });
   }
-
   // 重複削除
   const uniq = [];
   const seen = new Set();
@@ -148,42 +138,36 @@ async function loadRightForCenters(centerIds) {
       seen.add(it.id);
     }
   }
-
-  await new Promise((r) => setTimeout(r, 100));
   rightItems.value = uniq;
+  selectedRightMulti.value = []; // 右はリセット
 }
 
-// handlers
+// 左選択
 function selectLeft(item) {
   selectedLeft.value = item;
   leftType.value = item.type_layer;
-
   selectedCenter.value = null;
   selectedCenterMulti.value = [];
   selectedRightMulti.value = [];
-
   centerItems.value = [];
   rightItems.value = [];
-
   loadCenter(item.id);
 }
 
+// 中央選択（単一選択タイプ）
 function selectCenter(item) {
   selectedCenter.value = item;
-
-  if (leftType.value === 1) {
-    loadRightForCenters([item.id]);
-  }
+  if (leftType.value === 1) loadRightForCenters([item.id]);
 }
 
+// 中央チェックボックス変更時
 watch(
   selectedCenterMulti,
   (newVal) => {
     if (leftType.value === 2) {
       const ids = newVal.map((i) => i.id);
-      if (ids.length > 0) {
-        loadRightForCenters(ids);
-      } else {
+      if (ids.length) loadRightForCenters(ids);
+      else {
         rightItems.value = [];
         selectedRightMulti.value = [];
       }
@@ -192,26 +176,27 @@ watch(
   { deep: true }
 );
 
+// 初期化
 function reset() {
   selectedLeft.value = null;
   selectedCenter.value = null;
   selectedCenterMulti.value = [];
   selectedRightMulti.value = [];
-
   leftType.value = null;
   leftItems.value = [];
   centerItems.value = [];
   rightItems.value = [];
 }
 
+// キャンセル
 function cancel() {
   isOpen.value = false;
   resolver.value?.(null);
 }
 
+// 確定
 function confirm() {
   isOpen.value = false;
-
   const result = {
     left: selectedLeft.value,
     center:
@@ -220,8 +205,7 @@ function confirm() {
         : selectedCenter.value,
     right: selectedRightMulti.value,
   };
-
-  emit("selected", result); // ← ★ 追加したのはここだけ ★
+  emit("selected", result);
   resolver.value?.(result);
 }
 </script>
@@ -230,10 +214,18 @@ function confirm() {
 .border {
   border: 1px solid #ccc;
 }
-
 .scroll-area {
   width: 33%;
   overflow-y: auto;
   min-height: 0;
+}
+
+/* ラベル内で横並び */
+.checkbox-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
 }
 </style>
