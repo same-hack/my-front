@@ -71,7 +71,11 @@ const items = [
     ],
   },
 ];
-
+//
+//
+//
+//
+//
 const data = [
   {
     left: { id: 1, name: "左-1", type_layer: 0 },
@@ -92,30 +96,35 @@ const data = [
   },
 ];
 
-const formatted = data.map((item) => {
-  const leftName = item.left.name;
+// 文字列整形関数
+function formatData(data) {
+  return data.map((item) => {
+    const leftName = item.left.name;
 
-  // center は配列かオブジェクトか両方に対応
-  let centerNames: string[] = [];
-  if (Array.isArray(item.center)) {
-    centerNames = item.center.map((c) => c.name);
-  } else if (item.center) {
-    centerNames = [item.center.name];
-  }
+    let centerNames: string[] = [];
+    if (Array.isArray(item.center)) {
+      centerNames = item.center.map((c) => c.name);
+    } else if (item.center) {
+      centerNames = [item.center.name];
+    }
 
-  // right は配列のみ
-  let rightNames: string[] = [];
-  if (Array.isArray(item.right)) {
-    rightNames = item.right.map((r) => r.name);
-  }
+    let rightNames: string[] = [];
+    if (Array.isArray(item.right)) {
+      rightNames = item.right.map((r) => r.name);
+    }
 
-  // 各グループを () で囲む
-  const parts = [leftName];
-  if (centerNames.length) parts.push(`(${centerNames.join(" | ")})`);
-  if (rightNames.length) parts.push(`(${rightNames.join(" | ")})`);
+    const parts = [leftName];
+    if (centerNames.length) parts.push(`(${centerNames.join(" | ")})`);
+    if (rightNames.length) parts.push(`(${rightNames.join(" | ")})`);
 
-  return parts.join(" ");
-});
+    return { class_code: parts.join(" ") }; // オブジェクトに変換
+  });
+}
 
-console.log(formatted);
+// 使用例
+const obj = {
+  classList: formatData(data),
+};
+
+console.log(obj);
 </script>
