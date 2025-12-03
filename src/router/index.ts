@@ -10,6 +10,7 @@ import PageB from "@/pages/PageB.vue";
 import PageC from "@/pages/PageC.vue";
 import PageD from "@/pages/PageD.vue";
 import PageE from "@/pages/PageE.vue";
+import PageF from "@/pages/PageF.vue";
 import UserList from "@/pages/UserList.vue";
 import UserDetail from "@/pages/UserDetail.vue";
 import FastApiUserList from "@/pages/FastApiUserList.vue";
@@ -61,6 +62,12 @@ const routes = [
     path: "/e",
     name: "PageE",
     component: PageE,
+    // meta: { requiresAuth: true },
+  },
+  {
+    path: "/f",
+    name: "PageF",
+    component: PageF,
     // meta: { requiresAuth: true },
   },
   {
