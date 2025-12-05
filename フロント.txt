@@ -1,12 +1,76 @@
-function formatDateTime(isoString) {
-  const date = new Date(isoString)
+// ▼ サンプルデータ
+const data = [
+  {
+    name: "Parent",
+    code: "0A",
+    attribute1: {
+      name: "属性１",
+      code: "00",
+      attribute2: { name: "属性2", code: "22" }
+    }
+  },
+  {
+    name: "Parent",
+    code: "0A",
+    attribute1: {
+      name: "属性１-1",
+      code: "01",
+      attribute2: { name: "属性2", code: "22" }
+    }
+  },
+  {
+    name: "Parent",
+    code: "0A",
+    attribute1: {
+      name: "属性１",
+      code: "00",
+      attribute2: { name: "属性2-1", code: "221" }
+    }
+  }
+];
 
-  const yyyy = date.getFullYear()
-  const mm = String(date.getMonth() + 1).padStart(2, '0')
-  const dd = String(date.getDate()).padStart(2, '0')
-  const hh = String(date.getHours()).padStart(2, '0')
-  const mi = String(date.getMinutes()).padStart(2, '0')
-  const ss = String(date.getSeconds()).padStart(2, '0')
 
-  return `${yyyy}/${mm}/${dd} ${hh}:${mi}:${ss}`
-}
+// ▼ まとめ処理（重複削除込み）
+const result = data.reduce(
+  (acc, item) => {
+    // Parent情報（最初の1件だけ使う）
+    if (!acc.feature) {
+      acc.feature = { name: item.name, code: item.code };
+    }
+
+    // attribute1 を push
+    acc.attributes1.push({
+      name: item.attribute1.name,
+      code: item.attribute1.code
+    });
+
+    // attribute2 を push
+    acc.attributes2.push({
+      name: item.attribute1.attribute2.name,
+      code: item.attribute1.attribute2.code
+    });
+
+    return acc;
+  },
+  {
+    feature: null,
+    attributes1: [],
+    attributes2: []
+  }
+);
+
+
+// ▼ 重複削除（code をキーにしてまとめる）
+// attribute1
+result.attributes1 = Array.from(
+  new Map(result.attributes1.map(a => [a.code, a])).values()
+);
+
+// attribute2
+result.attributes2 = Array.from(
+  new Map(result.attributes2.map(a => [a.code, a])).values()
+);
+
+
+// ▼ 結果
+console.log(result);
