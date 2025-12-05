@@ -1,86 +1,21 @@
-// ▼ サンプルデータ（3パターン混在）
-const data = [
-  // featureだけ
-  { name: "ParentA", code: "0A" },
+export const apiClient = axios.create({
+  baseURL: '/api',
+  paramsSerializer: {
+    serialize: (params) => {
+      const query: string[] = [];
 
-  // feature + attribute1
-  {
-    name: "ParentA",
-    code: "0A",
-    attribute1: { name: "属性1", code: "00" }
-  },
+      Object.entries(params).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          // 配列 → ?codes=01&codes=02 にする
+          value.forEach(v => {
+            query.push(`${key}=${encodeURIComponent(v)}`);
+          });
+        } else {
+          query.push(`${key}=${encodeURIComponent(value as string)}`);
+        }
+      });
 
-  // feature + attribute1 + attribute2
-  {
-    name: "ParentA",
-    code: "0A",
-    attribute1: {
-      name: "属性1-1",
-      code: "01",
-      attribute2: { name: "属性2", code: "22" }
-    }
-  },
-  {
-    name: "ParentA",
-    code: "0A",
-    attribute1: {
-      name: "属性1-1",
-      code: "01",
-      attribute2: { name: "属性2-1", code: "221" }
+      return query.join('&');
     }
   }
-];
-
-
-// ▼ 重複削除ユーティリティ（code をキーに）
-const uniqByCode = <T extends { code: string }>(arr: T[]): T[] => {
-  return Array.from(new Map(arr.map(a => [a.code, a])).values());
-};
-
-
-
-// ▼ まとめ処理関数（3パターン対応・重複削除込み）
-const buildGroupedData = (list: any[]) => {
-  const grouped = list.reduce(
-    (acc, item) => {
-      // feature セット（最初の1件だけ）
-      if (!acc.feature) {
-        acc.feature = { name: item.name, code: item.code };
-      }
-
-      // attribute1 がある場合
-      if (item.attribute1) {
-        acc.attributes1.push({
-          name: item.attribute1.name,
-          code: item.attribute1.code
-        });
-      }
-
-      // attribute2 がある場合
-      if (item.attribute1?.attribute2) {
-        acc.attributes2.push({
-          name: item.attribute1.attribute2.name,
-          code: item.attribute1.attribute2.code
-        });
-      }
-
-      return acc;
-    },
-    {
-      feature: null as null | { name: string; code: string },
-      attributes1: [] as { name: string; code: string }[],
-      attributes2: [] as { name: string; code: string }[]
-    }
-  );
-
-  // --- 重複削除 ---
-  grouped.attributes1 = uniqByCode(grouped.attributes1);
-  grouped.attributes2 = uniqByCode(grouped.attributes2);
-
-  return grouped;
-};
-
-
-// ▼ 実行
-const result = buildGroupedData(data);
-console.log(result);
+});
