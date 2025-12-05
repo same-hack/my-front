@@ -1,76 +1,86 @@
-// ▼ サンプルデータ
+// ▼ サンプルデータ（3パターン混在）
 const data = [
+  // featureだけ
+  { name: "ParentA", code: "0A" },
+
+  // feature + attribute1
   {
-    name: "Parent",
+    name: "ParentA",
     code: "0A",
-    attribute1: {
-      name: "属性１",
-      code: "00",
-      attribute2: { name: "属性2", code: "22" }
-    }
+    attribute1: { name: "属性1", code: "00" }
   },
+
+  // feature + attribute1 + attribute2
   {
-    name: "Parent",
+    name: "ParentA",
     code: "0A",
     attribute1: {
-      name: "属性１-1",
+      name: "属性1-1",
       code: "01",
       attribute2: { name: "属性2", code: "22" }
     }
   },
   {
-    name: "Parent",
+    name: "ParentA",
     code: "0A",
     attribute1: {
-      name: "属性１",
-      code: "00",
+      name: "属性1-1",
+      code: "01",
       attribute2: { name: "属性2-1", code: "221" }
     }
   }
 ];
 
 
-// ▼ まとめ処理（重複削除込み）
-const result = data.reduce(
-  (acc, item) => {
-    // Parent情報（最初の1件だけ使う）
-    if (!acc.feature) {
-      acc.feature = { name: item.name, code: item.code };
+// ▼ 重複削除ユーティリティ（code をキーに）
+const uniqByCode = <T extends { code: string }>(arr: T[]): T[] => {
+  return Array.from(new Map(arr.map(a => [a.code, a])).values());
+};
+
+
+
+// ▼ まとめ処理関数（3パターン対応・重複削除込み）
+const buildGroupedData = (list: any[]) => {
+  const grouped = list.reduce(
+    (acc, item) => {
+      // feature セット（最初の1件だけ）
+      if (!acc.feature) {
+        acc.feature = { name: item.name, code: item.code };
+      }
+
+      // attribute1 がある場合
+      if (item.attribute1) {
+        acc.attributes1.push({
+          name: item.attribute1.name,
+          code: item.attribute1.code
+        });
+      }
+
+      // attribute2 がある場合
+      if (item.attribute1?.attribute2) {
+        acc.attributes2.push({
+          name: item.attribute1.attribute2.name,
+          code: item.attribute1.attribute2.code
+        });
+      }
+
+      return acc;
+    },
+    {
+      feature: null as null | { name: string; code: string },
+      attributes1: [] as { name: string; code: string }[],
+      attributes2: [] as { name: string; code: string }[]
     }
+  );
 
-    // attribute1 を push
-    acc.attributes1.push({
-      name: item.attribute1.name,
-      code: item.attribute1.code
-    });
+  // --- 重複削除 ---
+  grouped.attributes1 = uniqByCode(grouped.attributes1);
+  grouped.attributes2 = uniqByCode(grouped.attributes2);
 
-    // attribute2 を push
-    acc.attributes2.push({
-      name: item.attribute1.attribute2.name,
-      code: item.attribute1.attribute2.code
-    });
-
-    return acc;
-  },
-  {
-    feature: null,
-    attributes1: [],
-    attributes2: []
-  }
-);
+  return grouped;
+};
 
 
-// ▼ 重複削除（code をキーにしてまとめる）
-// attribute1
-result.attributes1 = Array.from(
-  new Map(result.attributes1.map(a => [a.code, a])).values()
-);
-
-// attribute2
-result.attributes2 = Array.from(
-  new Map(result.attributes2.map(a => [a.code, a])).values()
-);
-
-
-// ▼ 結果
+// ▼ 実行
+const result = buildGroupedData(data);
 console.log(result);
