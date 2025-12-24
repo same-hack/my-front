@@ -1,50 +1,23 @@
-🧩 CVAT v2.43.0
-Windows 11 + WSL2（Ubuntu）で
-WSLを起動 → CVATを起動 → UI開発する完全手順
-0️⃣ Windows 側：WSL2 をインストールする
-0-1. 管理者 PowerShell を起動
+🧩 Windows11 + WSL2
+「WSLに入る → docker が動く → CVAT起動」完全な実行順
+① Windowsで WSL をインストール
 
-スタート →「PowerShell」右クリック → 管理者として実行
+管理者 PowerShell
 
-0-2. WSL インストール
 wsl --install
 
 
-Ubuntu が自動で入る（22.04 LTS）
+再起動必須
 
-再起動が必須
+Ubuntu 22.04 が入る
 
-1️⃣ WSL（Ubuntu）を起動する
-1-1. Ubuntu を起動
-
-以下どちらか：
-
-スタートメニュー → Ubuntu
-
-PowerShell から：
-
-wsl
-
-
-👇
-ここから先は すべて Linux（WSL）のターミナル操作
-
-1-2. 初回のみ：Linux ユーザ作成
-Enter new UNIX username:
-Enter new UNIX password:
-
-
-→ 完了すると username@PCNAME:~$ になる
-
-2️⃣ Docker Desktop をインストール（Windows）
-
-※ まだなら
+② Windowsで Docker Desktop をインストール
 
 https://www.docker.com/products/docker-desktop/
 
-2-1. Docker 設定確認
+インストール後：
 
-Docker Desktop →
+Docker Desktop を 起動
 
 Settings → Resources → WSL Integration
 
@@ -52,109 +25,78 @@ Ubuntu に ☑
 
 Apply & Restart
 
-2-2. WSL 側で Docker が使えるか確認
+👉 ここまではまだ docker コマンドを打たない
 
-（Ubuntu ターミナル）
+③ WSL（Ubuntu）に入る【ここが超重要】
 
+どちらか一つ：
+
+スタートメニュー → Ubuntu
+
+PowerShell：
+
+wsl
+
+
+👇
+ここから先は全部 WSL（Linux）上
+
+確認：
+
+whoami
+uname -a
+
+④ WSL上で docker が動くか確認
 docker --version
 docker compose version
 
 
-❌ 出ない → Docker Desktop 未起動 or 連携OFF
+❌ 出ない場合
 
-3️⃣ WSL（Ubuntu）に nvm を入れる
+Docker Desktop が起動していない
+
+WSL Integration が OFF
+
+⑤ WSL に nvm を入れる
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 source ~/.bashrc
 
-
-確認：
-
-nvm --version
-
-4️⃣ Node.js（CVAT 用）
+⑥ Node.js（CVAT 用）
 nvm install 20
 nvm use 20
 nvm alias default 20
 
-
-確認：
-
-node -v
-# v20.x.x
-
-5️⃣ Yarn（classic）
+⑦ Yarn（classic）
 npm install -g yarn
 
-
-確認：
-
-yarn -v
-# 1.22.x
-
-6️⃣ WSL上で CVAT を取得する
-
-⚠ 絶対に /mnt/c では作業しない
-
+⑧ WSL上で CVAT を取得
 cd ~
 git clone https://github.com/opencv/cvat.git
 cd cvat
 git checkout v2.43.0
 
-7️⃣ CVAT バックエンドを起動する（WSL上）
+⑨ CVAT バックエンドを起動（WSL上）
 docker compose up -d
 
-7-1. 起動確認（Windowsのブラウザ）
+⑩ Windowsブラウザで確認
 http://localhost:8080/tasks
 
-
-✔ ログイン画面が出る
-✔ 初回ユーザを作成する
-
-❌ ここが動かないと UIは絶対に動かない
-
-8️⃣ フロントエンド依存関係を入れる（WSL）
+⑪ フロントエンド起動（WSL）
 cd ~/cvat/cvat-ui
 yarn install
-
-
-よく出るが問題なし：
-
-node-gyp configure failed
-
-.husky/pre-commit not found
-
-👉 Done が出れば成功
-
-9️⃣ フロントエンドを起動する（3000）
 yarn start --env API_URL=http://localhost:8080
 
-9-1. ブラウザで確認
-http://localhost:3000
+🧠 要点を一文で
 
-🔁 Hot Reload
-~/cvat/cvat-ui/src/components
+docker コマンドを打つのは「必ず WSL に入ってから」
 
+Windows側は
 
-編集 → 保存 → 即反映
+WSLを入れる
 
-🧠 重要ポイント（WSL運用）
-✅ WSLを「起動する」とは？
+Docker Desktopを起動する
 
-Ubuntu アプリを開く
+だけ。
 
-or wsl コマンドを打つ
-→ それが Linux マシンの電源ON相当
-
-✅ VS Code
-code .
-
-
-→ 自動で Remote - WSL になる
-
-❌ やってはいけない
-
-/mnt/c 配下で作業
-
-Windows 側 Node / yarn を使う
-
-Docker Desktop を止めたまま起動
+この整理で 矛盾はもうない はず。
+他にも「ここ手順的におかしくね？」あったら遠慮なく突っ込んで。
