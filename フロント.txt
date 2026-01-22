@@ -1,102 +1,142 @@
-🧩 Windows11 + WSL2
-「WSLに入る → docker が動く → CVAT起動」完全な実行順
-① Windowsで WSL をインストール
+🌤【気象情報 API】（天気・風・雨・気温・体感・警報など）
+✔ 1) Open-Meteo
 
-管理者 PowerShell
+特徴：無料・APIキー不要で即使えるグローバル気象 API（風速・降水・気温など取得可）
 
-wsl --install
+料金：無料（商用利用も基本無料だが利用条件要確認）
 
+用途：リアルタイム・予報・履歴 → 徒歩・車どちらの気象影響評価に◎
 
-再起動必須
+おすすめ度：⭐️⭐️⭐️（まず試すならコレ）
 
-Ubuntu 22.04 が入る
+ライセンス：Creative Commons CC BY 4.0
+公式URL：https://open-meteo.com/
 
-② Windowsで Docker Desktop をインストール
+✔ 2) OpenWeatherMap API
 
-https://www.docker.com/products/docker-desktop/
+特徴：現在〜予報・履歴・警報まで対応。世界対応。
 
-インストール後：
+料金：無料枠あり（1日1000回等）・商用プランへアップ可能
 
-Docker Desktop を 起動
+注意：2023–2024以降、One Call 3.0 への移行で無料枠制限あり
 
-Settings → Resources → WSL Integration
+用途：「予報＋警報」含め使いたい場合に強い
 
-Ubuntu に ☑
+おすすめ度：⭐️⭐️（無料枠だけで使うなら要設計）
 
-Apply & Restart
+ライセンス：Proprietary（利用規約ベース）
+公式URL：https://openweathermap.org/api
 
-👉 ここまではまだ docker コマンドを打たない
+✔ 3) 気象庁系 WAGRI API / 気象庁データラッパー
 
-③ WSL（Ubuntu）に入る【ここが超重要】
+特徴：日本気象庁公式データを API 形式で使える（府県予報・警報・1km メッシュなど）
 
-どちらか一つ：
+料金：無料（公的オープンデータ）
 
-スタートメニュー → Ubuntu
+用途：国内高精度気象 → 地域特化の調査に◎
 
-PowerShell：
+おすすめ度：⭐️⭐️（日本内向けでは強い）
 
-wsl
+ライセンス：政府標準利用規約（第2.0版）
+公式URL：https://www.wagri.net/
 
+気象 API のおすすめまとめ
+1️⃣ Open-Meteo — とりあえず無料で始めやすい
+2️⃣ OpenWeatherMap — 機能豊富 / 無料枠ありだが制限注意
+3️⃣ 気象庁系/WAGRI — 日本国内高精度データに最適
 
-👇
-ここから先は全部 WSL（Linux）上
+🚗【交通・渋滞・交通量データ API】
+✔ 1) 国土交通省 交通量 API（オープンデータ）
 
-確認：
+特徴：全国直轄国道の交通量データ（5分/1時間値）を取得可能（GeoJSON/CSV）
 
-whoami
-uname -a
+料金：無料（規約同意のみ必要）
 
-④ WSL上で docker が動くか確認
-docker --version
-docker compose version
+用途：渋滞傾向・混雑度解析・簡易判定に◎
 
+おすすめ度：⭐️⭐️⭐️（基礎交通量として最初に）
 
-❌ 出ない場合
+ライセンス：政府標準利用規約（第2.0版）
+公式URL：https://www.mlit.go.jp/road/ir/ir-data/data_shu.html
 
-Docker Desktop が起動していない
+✔ 2) TomTom Traffic APIs
 
-WSL Integration が OFF
+特徴：リアルタイム渋滞/交通インシデント/滞留データなど豊富な交通情報を提供
 
-⑤ WSL に nvm を入れる
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-source ~/.bashrc
+料金：無料トライアルあり、有料プランが基本（従量制）
 
-⑥ Node.js（CVAT 用）
-nvm install 20
-nvm use 20
-nvm alias default 20
+用途：車両ルート最適化・リアルタイム渋滞回避に◎
 
-⑦ Yarn（classic）
-npm install -g yarn
+おすすめ度：⭐️⭐️（精度欲しい場合）
 
-⑧ WSL上で CVAT を取得
-cd ~
-git clone https://github.com/opencv/cvat.git
-cd cvat
-git checkout v2.43.0
+ライセンス：Proprietary（TomTom 利用規約）
+公式URL：https://developer.tomtom.com/traffic-api
 
-⑨ CVAT バックエンドを起動（WSL上）
-docker compose up -d
+✔ 3) HERE Real-Time Traffic API
 
-⑩ Windowsブラウザで確認
-http://localhost:8080/tasks
+特徴：HERE マップのリアルタイム・過去交通データ提供（プローブ＋センサー情報）
 
-⑪ フロントエンド起動（WSL）
-cd ~/cvat/cvat-ui
-yarn install
-yarn start --env API_URL=http://localhost:8080
+料金：無料枠あり / 有料プランあり（法人向け）
 
-🧠 要点を一文で
+用途：物流/車両向けリアルタイム渋滞・ETA最適化
 
-docker コマンドを打つのは「必ず WSL に入ってから」
+おすすめ度：⭐️⭐️（Google の代替として多機能）
 
-Windows側は
+ライセンス：Proprietary（HERE 利用規約）
+公式URL：https://developer.here.com/products/traffic
 
-WSLを入れる
+交通 API のおすすめまとめ
+1️⃣ 国交省交通量 API — 費用ゼロで道路流量把握に最適
+2️⃣ TomTom Traffic — 商用精度のリアルタイム交通情報
+3️⃣ HERE Traffic — 広域路線・ETA 最適化に強い
 
-Docker Desktopを起動する
+🧭【人流・歩行者密度関連 API】（徒歩パフォーマンス向け）
 
-だけ。
+※ 日本では無料で簡単に使える“歩行者密度 API” は公的にはほぼ存在しません。多くは 有料プローブデータ系 となります。
 
-この整理で 矛盾はもうない はず。
-他にも「ここ手順的におかしくね？」あったら遠慮なく突っ込んで。
+✔ 1) Waze for Cities / Connected Citizens Program
+
+特徴：交通・事故・混雑等を自治体向けに共有するインシデント型データ
+
+料金：基本無料（要参加/契約）
+
+用途：都市部のリアルタイム渋滞・歩行者通行状況の傾向推定
+
+おすすめ度：⭐️⭐️
+
+ライセンス：Proprietary（Waze CCP 規約）
+公式URL：https://www.waze.com/ccp
+
+✔ 2) SafeGraph / Veraset（プローブ位置情報）
+
+特徴：スマホ位置データを人流/人の密度/滞留情報として取得可能
+
+料金：有料（データ契約ベース）
+
+ライセンス：Proprietary
+公式URL：https://www.safegraph.com/
+
+公式URL：https://www.veraset.com/
+
+✔ 3) Google Maps Popular Times / Crowd Prediction
+
+特徴：店舗/場所の混雑予測データ（利用は API 外観 or スクレイピング的アプローチ）
+
+料金：API 直接非公開。Google Maps API 上の付随情報として利用可能
+
+注意：ライセンスに注意が必要
+
+ライセンス：Proprietary（Google Maps Platform 利用規約）
+公式URL：https://developers.google.com/maps
+
+🔧【ルーティング・基盤 OSS】（外部データと組合せ用）
+✔ 1) GraphHopper（OSS）
+
+経路探索エンジン / OSM ベース
+
+無料・Apache 2.0 — 商用可
+
+ルート距離・所要時間の基礎として最適
+
+ライセンス：Apache License 2.0
+公式URL：https://www.graphhopper.com/
